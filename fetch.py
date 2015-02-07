@@ -5,7 +5,9 @@ import argparse
 def run():
   parser = argparse.ArgumentParser(description='Read Onestop Registry')
   parser.add_argument('path', help='Path to Onestop Registry')
-  parser.add_argument('feeds', nargs='*', help='Fetch Onestop Agencies')
+  parser.add_argument('feeds', nargs='*', help='Fetch Onestop Feeds')
+  parser.add_argument('--prefix', help='Fetch Onestop Feeds with GeoHash Prefix.')
+  parser.add_argument('--bbox', help='Fetch Onestop Feeds inside bounding box.')
   args = parser.parse_args()
   # Onestop Registry
   registry = onestop.OnestopRegistry(path=args.path)    

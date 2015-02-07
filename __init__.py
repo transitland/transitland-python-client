@@ -7,6 +7,7 @@ This library implements an interface for Onestop-IDs:
 
 Modules:
   onestop - Classes for reading and writing Onestop-IDs
+  geohash - Simple GeoHash implementation
   fetch - Feed aggregator
   
 """
