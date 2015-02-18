@@ -7,7 +7,7 @@ import argparse
 
 def strip(s):
   return str(s).strip().lower()
-
+  
 class GTFSReader(object):
   def __init__(self, filename):
     self.zipfile = zipfile.ZipFile(filename)
@@ -23,43 +23,52 @@ class GTFSCompare(object):
     self.g1 = GTFSReader(filename1)
     self.g2 = GTFSReader(filename2)
       
-  def compare(self, filename, key, display=None):
+  def compare(self, filename, keys):
     d1 = self.g1.readcsv(filename)
     d2 = self.g2.readcsv(filename)
-    return self.match(list(d1), list(d2), key)
+    return self.match(list(d1), list(d2), keys)
     
-  def match(self, data1, data2, key):
+  def match(self, data1, data2, keys):
     matched = {}
     unmatched = {}
-    for i in data1:
-      found = False
-      for j in data2:
-        if strip(i[key]) == strip(j[key]):
-          found = True
-          matched[strip(i[key])] = (i,j)
-      if not found:
-        unmatched[strip(i[key])] = i
-    return matched, unmatched
-
+    new = {}
+    dk1 = set([tuple(strip(i.get(k)) for k in keys) for i in data1])
+    dk2 = set([tuple(strip(i.get(k)) for k in keys) for i in data2])
+    found = dk1 & dk2
+    lost = dk1 - dk2
+    new = dk2 - dk1
+    return found, lost, new
+    
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='GTFS Comparison Tool')
   parser.add_argument('filename1', help='GTFS File 1')
   parser.add_argument('filename2', help='GTFS File 2')
   parser.add_argument('--table', help='Comparison table (GTFS filename.txt)', default='routes.txt')
-  parser.add_argument('--key', help='Comparison key', default='route_short_name')
+  parser.add_argument('--key', help='Comparison key', action="append", dest='keys')
   parser.add_argument('--display', help='Display key', default='route_long_name')
   parser.add_argument('--flip', help='Flip comparison', action='store_true')
   args = parser.parse_args()
+  args.keys = args.keys or ['route_short_name']
   if args.flip:
     args.filename1, args.filename2 = args.filename2, args.filename1
   # 
   gc = GTFSCompare(args.filename1, args.filename2)
-  matched, unmatched = gc.compare(args.table, key=args.key, display=args.display)
-  for k,(a,b) in matched.items():
-    if strip(a.get(args.display)) != strip(b.get(args.display)):
-      print str(k).ljust(40), a.get(args.display), "->", b.get(args.display)
-    else:
-      print str(k).ljust(40), a.get(args.display)
-  for k,a in unmatched.items():
-    print str(k).ljust(40), a.get(args.display), "(No Match!)"  
+  found, lost, new = gc.compare(args.table, keys=args.keys)
+  print "found:", found
+  print "lost:", lost
+  print "new:", new
+
+  # reworking...
+  # Pretty formatting.
+  # def printkey(k, width=40):
+  #   return "\t"+", ".join(k).ljust(width)
+  # width = max([len(printkey(i, width=0)) for i in matched.keys() + unmatched.keys()] or [0])
+  # width += 5
+  # for k,(a,b) in sorted(matched.items()):
+  #   if strip(a.get(args.display)) != strip(b.get(args.display)):
+  #     print printkey(k, width=width), a.get(args.display), "->", b.get(args.display)
+  #   else:
+  #     print printkey(k, width=width), a.get(args.display)
+  # for k,a in sorted(unmatched.items()):
+  #   print printkey(k, width=width), a.get(args.display), "(No Match!)"
 
