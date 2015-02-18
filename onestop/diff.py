@@ -48,15 +48,18 @@ if __name__ == "__main__":
   parser.add_argument('--table', help='Comparison table (GTFS filename.txt)', default='routes.txt')
   parser.add_argument('--key', help='Comparison key', default='route_short_name')
   parser.add_argument('--display', help='Display key', default='route_long_name')
+  parser.add_argument('--flip', help='Flip comparison', action='store_true')
   args = parser.parse_args()
+  if args.flip:
+    args.filename1, args.filename2 = args.filename2, args.filename1
   # 
   gc = GTFSCompare(args.filename1, args.filename2)
   matched, unmatched = gc.compare(args.table, key=args.key, display=args.display)
   for k,(a,b) in matched.items():
     if strip(a.get(args.display)) != strip(b.get(args.display)):
-      print k, "\t\t", a.get(args.display), "->", b.get(args.display)
+      print str(k).ljust(40), a.get(args.display), "->", b.get(args.display)
     else:
-      print k, "\t\t", a.get(args.display)
+      print str(k).ljust(40), a.get(args.display)
   for k,a in unmatched.items():
-    print k, "\t\t", a.get(args.display), "(No Match!)"  
+    print str(k).ljust(40), a.get(args.display), "(No Match!)"  
 
