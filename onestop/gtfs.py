@@ -22,7 +22,6 @@ class GTFSReader(object):
     # spatialReference.SetWellKnownGeogCS("WGS84")
     # multipoint.AssignSpatialReference(spatialReference)    
     for stop in self.readcsv('stops.txt'):
-      print geohash.encode((float(stop['stop_lat']), float(stop['stop_lon'])))
       point = ogr.Geometry(ogr.wkbPoint)
       # point.AssignSpatialReference(spatialReference)
       point.AddPoint(float(stop['stop_lon']), float(stop['stop_lat']))
