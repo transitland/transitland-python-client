@@ -1,27 +1,18 @@
+"""Compare two GTFS feeds."""
 import sys
-import csv
-import zipfile
 import json
 import collections
 import argparse
 
+import gtfs
+
 def strip(s):
   return str(s).strip().lower()
-  
-class GTFSReader(object):
-  def __init__(self, filename):
-    self.zipfile = zipfile.ZipFile(filename)
 
-  def readcsv(self, filemame):
-    with self.zipfile.open(filemame) as f:
-      data = csv.DictReader(f)
-      for i in data:
-        yield i
-    
 class GTFSCompare(object):
   def __init__(self, filename1, filename2):
-    self.g1 = GTFSReader(filename1)
-    self.g2 = GTFSReader(filename2)
+    self.g1 = gtfs.GTFSReader(filename1)
+    self.g2 = gtfs.GTFSReader(filename2)
       
   def compare(self, filename, keys):
     d1 = self.g1.readcsv(filename)
@@ -38,7 +29,7 @@ class GTFSCompare(object):
     lost = dk1 - dk2
     new = dk2 - dk1
     return found, lost, new
-    
+
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description='GTFS Comparison Tool')
   parser.add_argument('filename1', help='GTFS File 1')
