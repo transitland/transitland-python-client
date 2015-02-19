@@ -17,6 +17,7 @@ class GTFSReader(object):
   def stops_centroid(self):
     import ogr, osr
     multipoint = ogr.Geometry(ogr.wkbMultiPoint)
+    # Todo: Geographic center, or simple average?
     # spatialReference = osr.SpatialReference()
     # spatialReference.SetWellKnownGeogCS("WGS84")
     # multipoint.AssignSpatialReference(spatialReference)    
@@ -27,10 +28,4 @@ class GTFSReader(object):
       point.AddPoint(float(stop['stop_lon']), float(stop['stop_lat']))
       multipoint.AddGeometry(point)
     point = multipoint.Centroid()
-    print "%0.5f,%0.5f" % (point.GetY(), point.GetX())
-
-
-import sys
-f = GTFSReader(sys.argv[1])
-centroid = f.stops_centroid()
-print centroid
+    return (point.GetX(), point.GetY())
