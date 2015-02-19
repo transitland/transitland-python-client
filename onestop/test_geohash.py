@@ -34,6 +34,19 @@ class TestGeoHash(unittest.TestCase):
       # print "expect:", expect, encoded
       # print "test:", test, decoded
       assert test == decoded
+  
+  def test_neighbors(self):
+    test = '9p'
+    expect = {'s': '9n', 'e': '9r', 'w': '8z', 'nw': 'bb', 'sw': '8y', 'ne': 'c2', 'se': '9q', 'n': 'c0'}
+    result = geohash.neighbors(test)
+    for k in expect:
+      assert expect[k] == result[k]
+
+  def test_adjacent(self):
+    assert geohash.adjacent('9p', 'e') == '9r'
+    assert geohash.adjacent('9p', 's') == '9n'
+    assert geohash.adjacent('9p', 'w') == '8z'
+    assert geohash.adjacent('9p', 'n') == 'c0'
       
 if __name__ == '__main__':
     unittest.main()

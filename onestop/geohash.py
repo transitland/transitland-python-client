@@ -1,40 +1,7 @@
 """A simple GeoHash implementation."""
 
-BASESEQUENCE = [
-    '0',
-    '1',
-    '2',
-    '3',
-    '4',
-    '5',
-    '6',
-    '7',
-    '8',
-    '9',
-    'b',
-    'c',
-    'd',
-    'e',
-    'f',
-    'g',
-    'h',
-    'j',
-    'k',
-    'm',
-    'n',
-    'p',
-    'q',
-    'r',
-    's',
-    't',
-    'u',
-    'v',
-    'w',
-    'x',
-    'y',
-    'z']
-
 # Forward and reverse base 32 map
+BASESEQUENCE = '0123456789bcdefghjkmnpqrstuvwxyz'
 BASE32MAP = dict((k,count) for count,k in enumerate(BASESEQUENCE))
 BASE32MAPR = dict((count,k) for count,k in enumerate(BASESEQUENCE))
 
@@ -84,9 +51,11 @@ def geobits_to_geohash(value):
     ret.append(BASE32MAPR[total])
   # Join the string and return
   return "".join(ret)
-      
+
+# Public      
 def decode(value):
   """Decode a geohash. Returns a (lat,lon) pair."""
+  assert value, "Invalid geohash: %s"%value
   # Get the GeoHash bits
   bits = geohash_to_geobits(value)
   # Unzip the GeoHash bits.
@@ -100,6 +69,7 @@ def decode(value):
 
 def encode(latlon, length=12):
   """Encode a (lat,lon) pair to a GeoHash."""
+  assert len(latlon) == 2, "Invalid lat/lon: %s"%latlon
   # Half the length for each component.
   length /= 2
   lat = float_to_geobits(latlon[0], length=length*5)
@@ -110,8 +80,43 @@ def encode(latlon, length=12):
     ret.append(b)
     ret.append(a)
   return geobits_to_geohash(ret)
-  
+
+def adjacent(geohash, direction):
+  # Based on an implementation from:
+  #   http://www.movable-type.co.uk/scripts/geohash.html
+  assert direction in 'nsew', "Invalid direction: %s"%direction
+  assert geohash, "Invalid geohash: %s"%geohash
+  neighbor = {
+    'n': [ 'p0r21436x8zb9dcf5h7kjnmqesgutwvy', 'bc01fg45238967deuvhjyznpkmstqrwx' ],
+    's': [ '14365h7k9dcfesgujnmqp0r2twvyx8zb', '238967debc01fg45kmstqrwxuvhjyznp' ],
+    'e': [ 'bc01fg45238967deuvhjyznpkmstqrwx', 'p0r21436x8zb9dcf5h7kjnmqesgutwvy' ],
+    'w': [ '238967debc01fg45kmstqrwxuvhjyznp', '14365h7k9dcfesgujnmqp0r2twvyx8zb' ]
+  }
+  border = {
+    'n': [ 'prxz',     'bcfguvyz' ],
+    's': [ '028b',     '0145hjnp' ],
+    'e': [ 'bcfguvyz', 'prxz'     ],
+    'w': [ '0145hjnp', '028b'     ]
+  }
+  last = geohash[-1]
+  parent = geohash[0:-1]
+  t = len(geohash) % 2
+  # Check for edge cases
+  if (last in border[direction][t]) and (parent):
+    parent = adjacent(parent, direction)
+  return parent + BASESEQUENCE[neighbor[direction][t].index(last)]
+
+def neighbors(geohash):
+  return {
+    'n':  adjacent(geohash, 'n'),
+    'ne': adjacent(adjacent(geohash, 'n'), 'e'),
+    'e':  adjacent(geohash, 'e'),
+    'se': adjacent(adjacent(geohash, 's'), 'e'),
+    's':  adjacent(geohash, 's'),
+    'sw': adjacent(adjacent(geohash, 's'), 'w'),
+    'w':  adjacent(geohash, 'w'),
+    'nw': adjacent(adjacent(geohash, 'n'), 'w')
+  }
+
 if __name__ == "__main__":
-  # A little command line utility goes here.
   pass
-  
