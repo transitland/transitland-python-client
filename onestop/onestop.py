@@ -45,7 +45,7 @@ class OnestopFeed(object):
   @classmethod
   def load(cls, filename):
     """Load a Onestop Feed by filename."""
-    assert os.path.exists(filename), "Filename does not exist: "%filename
+    assert os.path.exists(filename), "Filename does not exist: %s"%filename
     with open(filename) as f:
       return cls(data=json.load(f))
     

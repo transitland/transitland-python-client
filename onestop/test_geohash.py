@@ -31,8 +31,6 @@ class TestGeoHash(unittest.TestCase):
     for test, expect in self.test_geohashes:
       encoded = geohash.decode(test)
       decoded = geohash.encode(encoded)
-      # print "expect:", expect, encoded
-      # print "test:", test, decoded
       assert test == decoded
   
   def test_neighbors(self):

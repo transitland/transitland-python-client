@@ -25,7 +25,7 @@ TEST_FEED = {
 
 class TestOnestopRegistry(unittest.TestCase):
   def setUp(self):
-    self.path = os.path.join('..','onestop-id-registry')
+    self.path = os.path.join('..', '..','onestop-id-registry')
     self.test_feed = 'f-9q8y-SFMTA'
 
   def test_init(self):
@@ -46,7 +46,7 @@ class TestOnestopRegistry(unittest.TestCase):
   
 class TestOnestopFeed(unittest.TestCase):
   def setUp(self):
-    self.path = os.path.join('..','onestop-id-registry')
+    self.path = os.path.join('..','..','onestop-id-registry')
     self.test_feed = 'f-9q8y-SFMTA'
   
   def test_load_filename(self):
