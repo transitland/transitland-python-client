@@ -19,7 +19,7 @@ class TestGTFSReader(unittest.TestCase):
       'stop_name': 'Furnace Creek Resort (Demo)'
     }
     f = gtfs.GTFSReader(self.test_gtfs)
-    stops = list(f.readcsv('stops.txt'))
+    stops = f.readcsv('stops.txt')
     found = filter(lambda x:x['stop_id'] == expect['stop_id'], stops)[0]
     for k in expect:
       assert expect[k] == found[k]
@@ -27,9 +27,14 @@ class TestGTFSReader(unittest.TestCase):
   def test_stops_centroid(self):
     f = gtfs.GTFSReader(self.test_gtfs)
     centroid = f.stops_centroid()
-    expect = (-116.77204833333333, 36.81966833333333)
+    expect = (36.8196683, -116.7720483)
     self.assertAlmostEqual(centroid[0], expect[0])
     self.assertAlmostEqual(centroid[1], expect[1])
+
+  def test_stops_geohash(self):
+    f = gtfs.GTFSReader(self.test_gtfs)
+    g = f.stops_geohash()
+    assert g == '9qs'
 
 if __name__ == '__main__':
     unittest.main()
