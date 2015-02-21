@@ -6,6 +6,7 @@ import geohash
 
 class GTFSReader(object):
   def __init__(self, filename):
+    self.cache = {}
     self.filename = filename
     self.zipfile = zipfile.ZipFile(filename)
 
@@ -14,15 +15,25 @@ class GTFSReader(object):
       data = csv.DictReader(f)
       for i in data:
         yield i
+        
+  def read(self, filename):
+    if filename in self.cache:
+      return self.cache[filename]
+    try:
+      data = list(self.readcsv(filename))
+    except KeyError:
+      data = []
+    self.cache[filename] = data
+    return data
     
-  def stops_centroid(self, stops=None):
+  def stops_centroid(self):
     import ogr, osr
     multipoint = ogr.Geometry(ogr.wkbMultiPoint)
     # Todo: Geographic center, or simple average?
     # spatialReference = osr.SpatialReference()
     # spatialReference.SetWellKnownGeogCS("WGS84")
     # multipoint.AssignSpatialReference(spatialReference)    
-    stops = stops or self.readcsv('stops.txt')
+    stops = self.read('stops.txt')
     for stop in stops:
       point = ogr.Geometry(ogr.wkbPoint)
       # point.AssignSpatialReference(spatialReference)
@@ -32,8 +43,8 @@ class GTFSReader(object):
     return (point.GetX(), point.GetY())
     
   def stops_geohash(self, debug=False):
-    stops = list(self.readcsv('stops.txt'))
-    centroid = self.stops_centroid(stops=stops)
+    stops = self.read('stops.txt')
+    centroid = self.stops_centroid()
     centroid_geohash = geohash.encode(centroid)
     stops_geohash = [
       geohash.encode((float(stop['stop_lat']), float(stop['stop_lon'])))
