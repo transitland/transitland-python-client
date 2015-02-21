@@ -5,9 +5,14 @@ import collections
 import argparse
 
 import gtfs
+import geohash
 
 def strip(s):
   return str(s).strip().lower()
+
+def add_geohash(data):
+  for stop in data:
+    stop['geohash'] = geohash.encode((float(stop['stop_lat']), float(stop['stop_lon'])))
 
 class GTFSCompare(object):
   def __init__(self, filename1, filename2):
@@ -15,8 +20,11 @@ class GTFSCompare(object):
     self.g2 = gtfs.GTFSReader(filename2)
       
   def compare(self, filename, keys):
-    d1 = self.g1.readcsv(filename)
-    d2 = self.g2.readcsv(filename)
+    d1 = self.g1.read(filename)
+    d2 = self.g2.read(filename)
+    if filename == 'stops.txt':
+      add_geohash(d1)
+      add_geohash(d2)
     return self.match(list(d1), list(d2), keys)
     
   def match(self, data1, data2, keys):
@@ -45,21 +53,7 @@ if __name__ == "__main__":
   # 
   gc = GTFSCompare(args.filename1, args.filename2)
   found, lost, new = gc.compare(args.table, keys=args.keys)
-  print "found:", found
-  print "lost:", lost
-  print "new:", new
-
-  # reworking...
-  # Pretty formatting.
-  # def printkey(k, width=40):
-  #   return "\t"+", ".join(k).ljust(width)
-  # width = max([len(printkey(i, width=0)) for i in matched.keys() + unmatched.keys()] or [0])
-  # width += 5
-  # for k,(a,b) in sorted(matched.items()):
-  #   if strip(a.get(args.display)) != strip(b.get(args.display)):
-  #     print printkey(k, width=width), a.get(args.display), "->", b.get(args.display)
-  #   else:
-  #     print printkey(k, width=width), a.get(args.display)
-  # for k,a in sorted(unmatched.items()):
-  #   print printkey(k, width=width), a.get(args.display), "(No Match!)"
+  print "==== Found:", len(found), "\n", found
+  print "==== Lost:", len(lost), "\n", lost
+  print "==== New:", len(new), "\n", new
 
