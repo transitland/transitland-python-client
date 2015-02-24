@@ -35,7 +35,7 @@ class TestGeoHash(unittest.TestCase):
   
   def test_neighbors(self):
     test = '9p'
-    expect = {'s': '9n', 'e': '9r', 'w': '8z', 'nw': 'bb', 'sw': '8y', 'ne': 'c2', 'se': '9q', 'n': 'c0'}
+    expect = {'s': '9n', 'e': '9r', 'w': '8z', 'nw': 'bb', 'sw': '8y', 'ne': 'c2', 'se': '9q', 'n': 'c0', 'c':'9p'}
     result = geohash.neighbors(test)
     for k in expect:
       assert expect[k] == result[k]

@@ -5,7 +5,7 @@ BASESEQUENCE = '0123456789bcdefghjkmnpqrstuvwxyz'
 BASE32MAP = dict((k,count) for count,k in enumerate(BASESEQUENCE))
 BASE32MAPR = dict((count,k) for count,k in enumerate(BASESEQUENCE))
 
-def geobits_to_float(bits, lower=-90.0, middle=0.0, upper=90.0):
+def _geobits_to_float(bits, lower=-90.0, middle=0.0, upper=90.0):
   """Convert GeoHash bits to a float."""
   for i in bits:
     if i:
@@ -15,7 +15,7 @@ def geobits_to_float(bits, lower=-90.0, middle=0.0, upper=90.0):
     middle = (upper + lower) / 2
   return middle
   
-def float_to_geobits(value, lower=-90.0, middle=0.0, upper=90.0, length=15):
+def _float_to_geobits(value, lower=-90.0, middle=0.0, upper=90.0, length=15):
   """Convert a float to a list of GeoHash bits."""
   ret = []
   for i in range(length):
@@ -28,7 +28,7 @@ def float_to_geobits(value, lower=-90.0, middle=0.0, upper=90.0, length=15):
     middle = (upper + lower) / 2
   return ret
 
-def geohash_to_geobits(value):
+def _geohash_to_geobits(value):
   """Convert a GeoHash to a list of GeoHash bits."""
   b = map(BASE32MAP.get, value)
   ret = []
@@ -40,7 +40,7 @@ def geohash_to_geobits(value):
     ret += out[::-1]
   return ret
   
-def geobits_to_geohash(value):
+def _geobits_to_geohash(value):
   """Convert a list of GeoHash bits to a GeoHash."""
   ret = []
   # Get 5 bits at a time
@@ -57,14 +57,14 @@ def decode(value):
   """Decode a geohash. Returns a (lat,lon) pair."""
   assert value, "Invalid geohash: %s"%value
   # Get the GeoHash bits
-  bits = geohash_to_geobits(value)
+  bits = _geohash_to_geobits(value)
   # Unzip the GeoHash bits.
   lon = bits[0::2]
   lat = bits[1::2]
   # Convert to lat/lon
   return (
-    geobits_to_float(lat), 
-    geobits_to_float(lon, lower=-180.0, upper=180.0)
+    _geobits_to_float(lat), 
+    _geobits_to_float(lon, lower=-180.0, upper=180.0)
   )
 
 def encode(latlon, length=12):
@@ -72,16 +72,17 @@ def encode(latlon, length=12):
   assert len(latlon) == 2, "Invalid lat/lon: %s"%latlon
   # Half the length for each component.
   length /= 2
-  lat = float_to_geobits(latlon[0], length=length*5)
-  lon = float_to_geobits(latlon[1], lower=-180.0, upper=180.0, length=length*5)
+  lat = _float_to_geobits(latlon[0], length=length*5)
+  lon = _float_to_geobits(latlon[1], lower=-180.0, upper=180.0, length=length*5)
   # Zip the GeoHash bits.
   ret = []
   for a,b in zip(lat,lon):
     ret.append(b)
     ret.append(a)
-  return geobits_to_geohash(ret)
+  return _geobits_to_geohash(ret)
 
 def adjacent(geohash, direction):
+  """Return the adjacent geohash for a given direction."""
   # Based on an implementation from:
   #   http://www.movable-type.co.uk/scripts/geohash.html
   assert direction in 'nsew', "Invalid direction: %s"%direction
@@ -107,6 +108,7 @@ def adjacent(geohash, direction):
   return parent + BASESEQUENCE[neighbor[direction][t].index(last)]
 
 def neighbors(geohash):
+  """Return all neighboring geohashes."""
   return {
     'n':  adjacent(geohash, 'n'),
     'ne': adjacent(adjacent(geohash, 'n'), 'e'),
@@ -115,8 +117,25 @@ def neighbors(geohash):
     's':  adjacent(geohash, 's'),
     'sw': adjacent(adjacent(geohash, 's'), 'w'),
     'w':  adjacent(geohash, 'w'),
-    'nw': adjacent(adjacent(geohash, 'n'), 'w')
+    'nw': adjacent(adjacent(geohash, 'n'), 'w'),
+    'c':  geohash
   }
+
+def neighborsfit(centroid, points, debug=False):
+  centroid = encode(centroid)
+  points = map(encode, points)
+  for i in range(1, len(centroid)):
+    g = centroid[0:i]
+    n = set(neighbors(g).values())
+    unbounded = [point for point in points if (point[0:i] not in n)]
+    if debug:
+      print "i:", i, "g:", g, "n:", n, "stops:", len(points), "unbounded:", len(unbounded), "pct: %0.2f"%((len(unbounded)/float(len(points)))*100.0)
+      if unbounded:
+        print "unbounded prefixes:", set(s[0:i] for s in unbounded)
+        print "unbounded all:", unbounded
+    if unbounded:        
+      break
+  return g[0:-1]
 
 if __name__ == "__main__":
   pass
