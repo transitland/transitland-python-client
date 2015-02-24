@@ -4,17 +4,74 @@ import csv
 
 import geohash
 
+class GTFSObject(object):
+  def __init__(self, data):
+    self.data = data    
+  
+  def __getitem__(self, key, default=None):
+    return self.data.get(key, default)
+  
+  def __getitem__(self, key):
+    if key in self.data:
+      return self.data[key]
+    elif key == 'geohash':
+      return self.geohash()
+    elif key == 'onestop':
+      return self.onestop()
+    elif key == 'coords':
+      return self.coords()
+    else:
+      raise KeyError(key)
+      
+  def get(self, key, default=None):
+    try:
+      return self[key]
+    except KeyError:
+      return default
+    
+  def coords(self):
+    raise NotImplementedError  
+    
+  def onestop(self):
+    raise NotImplementedError
+
+  def geohash(self):
+    self.data['geohash'] = geohash.encode(self.coords())[:10]
+    return self.data['geohash']
+
+class GTFSAgency(GTFSObject):
+  pass
+  
+class GTFSRoute(GTFSObject):
+  pass
+  
+class GTFSStop(GTFSObject):
+  def coords(self):
+    self.data['coords'] = float(self.data['stop_lat']), float(self.data['stop_lon'])
+    return self.data['coords']
+
+class GTFSStation(GTFSObject):
+  pass
+
 class GTFSReader(object):
+  factories = {
+    'agency.txt': GTFSAgency,
+    'routes.txt': GTFSRoute,
+    'stops.txt': GTFSStop,
+    None: GTFSObject
+  }
+
   def __init__(self, filename):
     self.cache = {}
     self.filename = filename
     self.zipfile = zipfile.ZipFile(filename)
 
-  def readcsv(self, filemame):
-    with self.zipfile.open(filemame) as f:
+  def readcsv(self, filename):
+    factory = self.factories.get(filename) or self.factories.get(None)
+    with self.zipfile.open(filename) as f:
       data = csv.DictReader(f)
       for i in data:
-        yield i
+        yield factory(i)
         
   def read(self, filename):
     if filename in self.cache:
@@ -30,37 +87,16 @@ class GTFSReader(object):
     import ogr, osr
     multipoint = ogr.Geometry(ogr.wkbMultiPoint)
     # Todo: Geographic center, or simple average?
-    # spatialReference = osr.SpatialReference()
-    # spatialReference.SetWellKnownGeogCS("WGS84")
-    # multipoint.AssignSpatialReference(spatialReference)    
+    # spatialReference = osr.SpatialReference() ...
     stops = self.read('stops.txt')
     for stop in stops:
       point = ogr.Geometry(ogr.wkbPoint)
-      # point.AssignSpatialReference(spatialReference)
-      point.AddPoint(float(stop['stop_lat']), float(stop['stop_lon']))
+      point.AddPoint(stop.coords()[0], stop.coords()[1])
       multipoint.AddGeometry(point)
     point = multipoint.Centroid()
     return (point.GetX(), point.GetY())
     
   def stops_geohash(self, debug=False):
-    stops = self.read('stops.txt')
     centroid = self.stops_centroid()
-    centroid_geohash = geohash.encode(centroid)
-    stops_geohash = [
-      geohash.encode((float(stop['stop_lat']), float(stop['stop_lon'])))
-      for stop in stops
-    ]
-    for i in range(1, len(centroid_geohash)):
-      g = centroid_geohash[0:i]
-      n = set(geohash.neighbors(g).values())
-      n.add(g[0:i])
-      unbounded = [s for s in stops_geohash if (s[0:i] not in n)]
-      if debug:
-        print "i:", i, "g:", g, "n:", n, "stops:", len(stops_geohash), "unbounded:", len(unbounded), "pct: %0.2f"%((len(unbounded)/float(len(stops_geohash)))*100.0)
-        if unbounded:
-          print "unbounded prefixes:", set(s[0:i] for s in unbounded)
-          print "unbounded all:", unbounded
-      if unbounded:        
-        break
-    return g[0:-1]
-      
+    points = [stop.coords() for stop in self.read('stops.txt')]
+    return geohash.neighborsfit(centroid, points)
