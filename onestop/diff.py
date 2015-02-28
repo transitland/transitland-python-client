@@ -66,6 +66,13 @@ if __name__ == "__main__":
   # 
   gc = GTFSCompare(args.filename1, args.filename2)
 
+  same = gc.same(args.table, keys=args.keys)
+  print "===== Same: %s ====="%(len(same))
+  for k,v in sorted(same.items()):
+    print k, [stripvalues(i,args.display) for i in v]
+    if args.debug:
+      pprint.pprint([i.data for i in v])
+
   lost = gc.lost(args.table, keys=args.keys)
   print "===== Lost: %s ====="%(len(lost))
   for k,v in sorted(lost.items()):
