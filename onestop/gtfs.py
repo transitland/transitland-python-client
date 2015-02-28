@@ -40,6 +40,7 @@ REPLACE.extend([
   [r'\.',''],
   [r' - ',':'],
   [r'&',':'],
+  [r'@',':'],
   [r'\/',':'],
   [r' ','']
 ])
@@ -65,11 +66,11 @@ class GTFSObject(object):
     if key in self.data:
       return self.data[key]
     elif key == 'geohash':
-      return self.geohash()
+      self.data['geohash'] = self.geohash()
+      return self.data['geohash']
     elif key == 'onestop':
-      return self.onestop()
-    elif key == 'point':
-      return self.point()
+      self.data['onestop'] = self.onestop()
+      return self.data['onestop']
     else:
       raise KeyError(key)
       
@@ -83,23 +84,25 @@ class GTFSObject(object):
     return [(k,self[k]) for k in self.keys()]
     
   def keys(self):
-    return self.data.keys() + ['geohash', 'onestop', 'bbox', 'coords']
+    return self.data.keys() + ['geohash', 'onestop']
   
-  def coords(self):
-    raise NotImplementedError  
-    
   def name(self):
     raise NotImplementedError  
-    
-  def geohash(self):
-    raise NotImplementedError  
 
-  def bbox(self):
-    raise NotImplementedError    
-    
   def onestop(self):
     return '%s-%s-%s'%(self.onestop_type, self.geohash(), mangle(self.name()))
 
+  def geohash(self):
+    raise NotImplementedError  
+
+  def point(self):
+    raise NotImplementedError  
+    
+  def bbox(self):
+    raise NotImplementedError    
+    
+  def geojson(self):
+    raise NotImplementedError    
 
 class GTFSAgency(GTFSObject):
   onestop_type = 'o'
@@ -109,15 +112,39 @@ class GTFSAgency(GTFSObject):
 
   def geohash(self, debug=False):
     # Filter stops without valid coordinates...
-    points = [stop.point() for stop in self.stops() if stop.point()]
+    points = [s.point() for s in self.stops() if s.point()]
+    if not points:
+      raise ValueError("Cannot create geohash with no stops.")
     centroid = self._stops_centroid()
     return geohash.neighborsfit(centroid, points)
 
-  def coords(self):
-    return [0,0]
+  def point(self):
+    bbox = self.bbox()
+    return [
+      (bbox[0]+bbox[2])/2,
+      (bbox[1]+bbpx[3])/2      
+    ]
 
   def bbox(self):
-    pass
+    points = [s.point() for s in self.stops()]
+    if not points:
+      raise ValueError("Cannot find bbox with no stops.")
+    lons = [p[0] for p in points]
+    lats = [p[1] for p in points]
+    return [
+      min(lons),
+      min(lats),
+      max(lons),
+      max(lats)
+    ]
+
+  def geojson(self):
+    return {
+      'type': 'FeatureCollection',
+      'features': [s.geojson() for s in self.stops()],
+      'properties': dict((k,v) for k,v in self.items() if k != 'geometry'),
+      'bbox': self.bbox()
+    }
 
   def routes(self):
     if 'routes' in self.cache:
@@ -157,14 +184,7 @@ class GTFSAgency(GTFSObject):
       point.AddPoint(stop.point()[1], stop.point()[0])
       multipoint.AddGeometry(point)
     point = multipoint.Centroid()
-    return (point.GetX(), point.GetY())
-    
-  def geojson(self):
-    return {
-      'type': 'FeatureCollection',
-      'features': [s.geojson() for s in self.stops()],
-      'properties': dict((k,v) for k,v in self.items() if k != 'geometry')
-    }
+    return (point.GetY(), point.GetX())
     
 class GTFSRoute(GTFSObject):
   onestop_type = 'r'
@@ -175,17 +195,6 @@ class GTFSRoute(GTFSObject):
 class GTFSStop(GTFSObject):
   onestop_type = 's'
 
-  def coords(self):
-    try:
-      self.data['coords'] = float(self.data['stop_lon']), float(self.data['stop_lat'])
-    except KeyError:
-      self.data['coords'] = None
-    return self.data['coords']
-
-  def bbox(self):
-    c = self.point()
-    return [c[0], c[1], c[0], c[1]]
-
   def name(self):
     return self['stop_name']
 
@@ -193,6 +202,16 @@ class GTFSStop(GTFSObject):
     self.data['geohash'] = geohash.encode(self.point())[:10]
     return self.data['geohash']
     
+  def point(self):
+    if 'stop_lon' not in self.data or 'stop_lat' not in self.data:
+      raise ValueError("Point is missing geometry.")
+    self.data['point'] = float(self.data['stop_lon']), float(self.data['stop_lat'])
+    return self.data['point']
+
+  def bbox(self):
+    c = self.point()
+    return [c[0], c[1], c[0], c[1]]
+
   def geojson(self):
     return {
       'type': 'Feature',
@@ -200,7 +219,8 @@ class GTFSStop(GTFSObject):
         "type": 'Point',
         "coordinates": self.point(),
       },
-      'properties': dict((k,v) for k,v in self.items() if k != 'geometry')
+      'properties': dict((k,v) for k,v in self.items() if k != 'geometry'),
+      'bbox': self.bbox()
     }
 
 class GTFSStation(GTFSObject):
