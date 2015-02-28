@@ -73,7 +73,7 @@ class GTFSObject(object):
       return self.data['onestop']
     else:
       raise KeyError(key)
-      
+
   def get(self, key, default=None):
     try:
       return self[key]
@@ -149,7 +149,12 @@ class GTFSAgency(GTFSObject):
   def routes(self):
     if 'routes' in self.cache:
       return self.cache['routes']
-    self.cache['routes'] = [route for route in self.feed.read('routes.txt') if route.get('agency_id') == self.get('agency_id')]
+    # Are we the only agency in the feed?
+    check = lambda r:True
+    if len(self.feed.agencies()) > 1:
+      check = lambda r:(r.get('agency_id') == self.get('agency_id'))
+    # Get the routes...    
+    self.cache['routes'] = filter(check, self.feed.read('routes.txt'))
     return self.cache['routes']
     
   def trips(self):
@@ -169,8 +174,14 @@ class GTFSAgency(GTFSObject):
   def stops(self):
     if 'stops' in self.cache:
       return self.cache['stops']
-    stop_ids = set(s.get('stop_id') for s in self.stop_times())
-    self.cache['stops'] = [s for s in self.feed.read('stops.txt') if s.get('stop_id') in stop_ids]
+    # Are we the only agency in the feed?
+    check = lambda s:True
+    stop_ids = set()
+    if len(self.feed.agencies()) > 1:
+      stop_ids = set(s.get('stop_id') for s in self.stop_times())
+      check = lambda s:(s.get('stop_id') in stop_ids)
+    # Get the stops...
+    self.cache['stops'] = filter(check, self.feed.read('stops.txt'))
     return self.cache['stops']
     
   def _stops_centroid(self):
