@@ -27,7 +27,7 @@ class TestGTFSReader(unittest.TestCase):
   def test_stops_centroid(self):
     f = gtfs.GTFSReader(self.test_gtfs)
     centroid = f.stops_centroid()
-    expect = (36.8196683, -116.7720483)
+    expect = (-116.7720483, 36.8196683)
     self.assertAlmostEqual(centroid[0], expect[0])
     self.assertAlmostEqual(centroid[1], expect[1])
 

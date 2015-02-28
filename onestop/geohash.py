@@ -54,7 +54,7 @@ def _geobits_to_geohash(value):
 
 # Public      
 def decode(value):
-  """Decode a geohash. Returns a (lat,lon) pair."""
+  """Decode a geohash. Returns a (lon,lat) pair."""
   assert value, "Invalid geohash: %s"%value
   # Get the GeoHash bits
   bits = _geohash_to_geobits(value)
@@ -63,22 +63,22 @@ def decode(value):
   lat = bits[1::2]
   # Convert to lat/lon
   return (
-    _geobits_to_float(lat), 
-    _geobits_to_float(lon, lower=-180.0, upper=180.0)
+    _geobits_to_float(lon, lower=-180.0, upper=180.0),
+    _geobits_to_float(lat)
   )
 
-def encode(latlon, length=12):
-  """Encode a (lat,lon) pair to a GeoHash."""
-  assert len(latlon) == 2, "Invalid lat/lon: %s"%latlon
+def encode(lonlat, length=12):
+  """Encode a (lon,lat) pair to a GeoHash."""
+  assert len(lonlat) == 2, "Invalid lon/lat: %s"%lonlat
   # Half the length for each component.
   length /= 2
-  lat = _float_to_geobits(latlon[0], length=length*5)
-  lon = _float_to_geobits(latlon[1], lower=-180.0, upper=180.0, length=length*5)
+  lon = _float_to_geobits(lonlat[0], lower=-180.0, upper=180.0, length=length*5)
+  lat = _float_to_geobits(lonlat[1], lower=-90.0, upper=90.0, length=length*5)
   # Zip the GeoHash bits.
   ret = []
-  for a,b in zip(lat,lon):
-    ret.append(b)
+  for a,b in zip(lon,lat):
     ret.append(a)
+    ret.append(b)
   return _geobits_to_geohash(ret)
 
 def adjacent(geohash, direction):
