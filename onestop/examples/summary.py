@@ -4,6 +4,9 @@ import json
 
 import onestop.gtfs
 
+def aggregate(filenames, outfile):
+  pass
+
 def summarize(filename):
   d = os.path.dirname(filename)
   if os.path.exists(os.path.join(d, 'status.txt')):
@@ -13,7 +16,7 @@ def summarize(filename):
   # Create OnestopIds for each agency.
   g = onestop.gtfs.GTFSReader(filename)
   for agency in g.agencies():
-    print "Agency:", agency['agency_name']
+    print "Agency:", agency.get('agency_name')
     try:
       o = agency.onestop()
       print "Got Onestop ID:", o
@@ -38,3 +41,4 @@ if __name__ == "__main__":
   for filename in sys.argv[1:]:
     print "==== %s ===="%filename
     summarize(filename)
+  aggregate(filenames, 'coverage.geojson')
