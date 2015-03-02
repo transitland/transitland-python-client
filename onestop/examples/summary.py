@@ -1,11 +1,40 @@
 import sys
 import os
 import json
+import glob
 
 import onestop.gtfs
 
 def aggregate(filenames, outfile):
-  pass
+  features = []
+  for filename in filenames:
+    for g in glob.glob(os.path.join(os.path.dirname(filename), '*.geojson')):
+      print g
+      with open(g) as f:
+        data = json.load(f)
+      b = data['bbox']
+      features.append({
+        'type':'Feature',
+        'properties': data['properties'],
+        'geometry': {
+          'type': 'Polygon',
+          'coordinates': [[
+            [b[0], b[1]],
+            [b[0], b[3]],
+            [b[2], b[3]],
+            [b[2], b[1]],
+            [b[0], b[1]]
+          ]]}
+        })
+    out = {
+      'type':'FeatureCollection',
+      'features': features
+    }
+    with open(outfile, 'w') as f:
+      json.dump(out, f)
+      
+      
+        
 
 def summarize(filename):
   d = os.path.dirname(filename)
@@ -41,4 +70,6 @@ if __name__ == "__main__":
   for filename in sys.argv[1:]:
     print "==== %s ===="%filename
     summarize(filename)
-  aggregate(filenames, 'coverage.geojson')
+  aggregate(sys.argv[1:], 'coverage.geojson')
+  
+  
