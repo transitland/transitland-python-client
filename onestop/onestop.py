@@ -13,6 +13,10 @@ class OnestopRegistry(object):
     # Path to registry
     self.path = path
   
+  def list_feeds(self):
+    for feed in self.load_feeds():
+      yield feed['onestopId']
+
   def load_feeds(self):
     """Load all feeds."""
     for filename in glob.glob(os.path.join(self.path, 'feeds', 'f-*.json')):
@@ -20,7 +24,18 @@ class OnestopRegistry(object):
 
   def load_feed(self, onestopId):
     """Load a feed by onestopId."""
-    return OnestopFeed.load(os.path.join(self.path, 'feeds', '%s.json'%onestopId))
+    return OnestopFeed.load(
+      os.path.join(self.path, 'feeds', '%s.json'%onestopId)
+    )
+
+  def operators(self):
+    for filename in glob.glob(os.path.join(self.path, 'operators', 'o-*.geojson')):
+      yield OnestopOperator.load(filename)
+    
+  def operator(self, onestopId):
+    return OnestopOperator.load(
+      os.path.join(self.path, 'feeds', '%s.geojson'%onestopId)
+    )
 
 class OnestopFeed(object):
   """Read and write Onestop Feeds."""
@@ -62,4 +77,33 @@ class OnestopFeed(object):
     
 class OnestopOperator(object):
   """Onestop Operator."""
-  pass
+  def __init__(self, data=None):
+    self.data = data or {}
+
+  def __getitem__(self, key, default=None):
+    return self.data.get(key, default)
+  
+  def __getattr__(self, key):
+    try:
+      return self.data[key]
+    except:
+      raise AttributeError(key)
+      
+  @classmethod
+  def load(cls, filename):
+    assert os.path.exists(filename), "Filename does not exist: %s"%filename
+    with open(filename) as f:
+      return cls(data=json.load(f))
+    
+  def stops(self):
+    return self.data['features']
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
