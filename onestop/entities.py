@@ -8,21 +8,25 @@ import mzgtfs.entities
 import mzgeohash
 
 # Regexes
-REPLACE = [
-  [r'\'',''],
-  [r'\.',''],
-  [r' - ',':'],
-  [r'&',':'],
-  [r'@',':'],
-  [r'\/',':'],
-  [r' ','']
+REPLACE_CHAR = [
+  # replace &, @, and / with ~
+  [r':','~'], 
+  [r'&','~'], 
+  [r'@','~'],
+  [r'\/','~'],
+  # replace every other special char
+  [r'[^~0-9a-zA-Z]+', '']
 ]
-ABBR = [
+REPLACE_CHAR = [[re.compile(i[0]), i[1]] for i in REPLACE_CHAR]
+
+REPLACE_ABBR = [
   'street', 
   'st',
   'sts',
   'ctr',
   'center',
+  'drive',
+  'dr',
   'ave', 
   'avenue', 
   'av',
@@ -41,7 +45,7 @@ ABBR = [
   'court',
   'ct',
 ]
-REPLACE_ABBR = [[r'\b%s\b'%i, ''] for i in ABBR]
+REPLACE_ABBR = [[re.compile(r'\b%s\b'%i), ''] for i in REPLACE_ABBR]
 
 def geohash_features(features):
   # Filter stops without valid coordinates...
@@ -111,13 +115,14 @@ class OnestopEntity(object):
   def identifiers(self):
     ret = []
     for k,v in self._identifiers.items():
-      c = copy.copy(v.data)
+      c = {}
+      c['tags'] = copy.copy(v.data)
       c['identifier'] = k
       ret.append(c)
     return ret
     
   def add_identifier(self, entity):
-    # hack
+    # Ugly hack
     entity._onestop_parent = self 
     self._identifiers[entity.feedid()] = entity
   
@@ -125,20 +130,28 @@ class OnestopEntity(object):
   def mangle(self, s):
     """Mangle a string into an identifier."""
     s = s.lower()
-    for a,b in REPLACE:
-      s = re.sub(a,b,s)
+    for a,b in REPLACE_CHAR:
+      s = a.sub(b,s)
     return s    
 
   def onestop(self):
     """Return the OnestopID for this entity."""
-    return '%s-%s-%s'%(
+    # cache...
+    if getattr(self, '_onestop', None):
+      return self._onestop
+    self._onestop = '%s-%s-%s'%(
       self.onestop_type, 
       self.geohash(), 
       self.mangle(self.name())
     )
+    return self._onestop
 
 class OnestopAgency(OnestopEntity):
   onestop_type = 'o'
+  
+  @classmethod
+  def load(cls, filename):
+    raise NotImplementedError
   
   @classmethod
   def from_gtfs(cls, gtfs_agency):
@@ -159,17 +172,29 @@ class OnestopAgency(OnestopEntity):
     routes = {}
     for i in gtfs_agency.routes():
       route = OnestopRoute(name=i.name())
+      if not i.stops():
+        print "Yikes! No stops! Skipping this route."
+        continue
       for j in i.stops():
         route.pclink(route, j._onestop_parent)
       key = route.onestop()
       if key in routes:
-        raise KeyError("Route already exists!")
-      else:
-        route.pclink(agency, route)
-        route.add_identifier(i)
-        routes[key] = route
+        # hack
+        print "Route already exists, setting temp fix..."
+        route._name = '%s~1'%route._name
+        route._onestop = None
+        key = route.onestop()
+        print "set key to:", key
+        assert key not in routes
+        # raise KeyError("Route already exists!: %s"%key)
+      route.pclink(agency, route)
+      route.add_identifier(i)
+      routes[key] = route
     # Return agency
     return agency
+
+  def geohash(self):
+    return geohash_features(self.stops())
     
   def geojson(self):
     return {
@@ -178,8 +203,9 @@ class OnestopAgency(OnestopEntity):
       'name': self.name(),
       'tags': self._tags,
       'identifiers': self.identifiers(),
-      'routes': [i.geojson() for i in self.routes()],
-      'stops': [i.geojson() for i in self.stops()]
+      'onestopId': self.onestop(),
+      'serves': [i.onestop() for i in self.stops()],
+      'features': [i.geojson() for i in self.routes()] + [i.geojson() for i in self.stops()]
     }
     
   def routes(self):
@@ -187,19 +213,16 @@ class OnestopAgency(OnestopEntity):
   
   def stops(self):
     stops = set()
-    for i in self.children:
-      stops |= i.children
+    for i in self.routes():
+      stops |= i.stops()
     return stops  
-    
-  def geohash(self):
-    return 'agency'  
-    
+        
 class OnestopRoute(OnestopEntity):
   onestop_type = 'r'
   
   def geohash(self):
     """Return 10 characters of geohash."""
-    return geohash_features(self.children)
+    return geohash_features(self.stops())
 
   def geojson(self):
     return {
@@ -210,12 +233,18 @@ class OnestopRoute(OnestopEntity):
       'name': self.name(),
       'tags': self._tags,
       'identifiers': self.identifiers(),
-      'operatedBy': [i.onestop() for i in self.parents][0],
-      'serves': [i.onestop() for i in self.children],
+      'operatedBy': [i.onestop() for i in self.agencies()][0],
+      'serves': [i.onestop() for i in self.stops()],
     }
 
   def geometry(self):
-    return {}
+    return self._identifiers.values()[0].geometry()
+
+  def agencies(self):
+    return self.parents
+
+  def stops(self):
+    return self.children  
 
 class OnestopStop(OnestopEntity):
   onestop_type = 's'
@@ -223,10 +252,10 @@ class OnestopStop(OnestopEntity):
   def mangle(self,s):
     """Also replace common road abbreviations."""
     s = s.lower()
-    for a,b in REPLACE:
-      s = re.sub(a,b,s)
     for a,b in REPLACE_ABBR:
-      s = re.sub(a,b,s)
+      s = a.sub(b,s)
+    for a,b in REPLACE_CHAR:
+      s = a.sub(b,s)
     return s    
 
   def geohash(self):
@@ -242,8 +271,7 @@ class OnestopStop(OnestopEntity):
       'name': self.name(),
       'tags': self._tags,
       'identifiers': self.identifiers(),
-      'servedBy': [i.onestop() for i in self.parents],
-      'serves': [i.onestop() for i in self.children],
+      'servedBy': [i.onestop() for i in self.agencies()],
     }
   
   def geometry(self):
@@ -252,3 +280,8 @@ class OnestopStop(OnestopEntity):
       "coordinates": self.point(),
     }
     
+  def agencies(self):
+    agencies = set()
+    for i in self.parents:
+      agencies |= i.parents
+    return agencies
