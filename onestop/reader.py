@@ -6,6 +6,8 @@ import json
 import argparse
 import urllib
 
+import entities
+
 class OnestopRegistry(object):
   """Onestop Registry."""
   def __init__(self, path=None):
@@ -30,10 +32,10 @@ class OnestopRegistry(object):
 
   def operators(self):
     for filename in glob.glob(os.path.join(self.path, 'operators', 'o-*.geojson')):
-      yield OnestopOperator.load(filename)
+      yield entities.OnestopAgency.load(filename)
     
   def operator(self, onestopId):
-    return OnestopOperator.load(
+    return entities.OnestopAgency.load(
       os.path.join(self.path, 'feeds', '%s.geojson'%onestopId)
     )
 
@@ -73,37 +75,4 @@ class OnestopFeed(object):
   
   def fetch(self, filename):
     """Download the GTFS feed to a file."""
-    urllib.urlretrieve(self.url, filename)    
-    
-class OnestopOperator(object):
-  """Onestop Operator."""
-  def __init__(self, data=None):
-    self.data = data or {}
-
-  def __getitem__(self, key, default=None):
-    return self.data.get(key, default)
-  
-  def __getattr__(self, key):
-    try:
-      return self.data[key]
-    except:
-      raise AttributeError(key)
-      
-  @classmethod
-  def load(cls, filename):
-    assert os.path.exists(filename), "Filename does not exist: %s"%filename
-    with open(filename) as f:
-      return cls(data=json.load(f))
-    
-  def stops(self):
-    return self.data['features']
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    urllib.urlretrieve(self.url, filename)
