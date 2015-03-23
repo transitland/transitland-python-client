@@ -14,29 +14,30 @@ class OnestopRegistry(object):
     """Path to directory containing 'feeds', 'operators', etc."""
     # Path to registry
     self.path = path
-  
-  def list_feeds(self):
-    for feed in self.load_feeds():
-      yield feed['onestopId']
 
-  def load_feeds(self):
-    """Load all feeds."""
-    for filename in glob.glob(os.path.join(self.path, 'feeds', 'f-*.json')):
-      yield OnestopFeed.load(filename)
+  def _registered(self, path, prefix):
+    return [
+        os.path.basename(i).partition('.')[0] 
+        for i in glob.glob(
+          os.path.join(self.path, path, '%s-*.*json'%prefix)
+        )
+      ]
 
-  def load_feed(self, onestopId):
+  def feeds(self):
+    return self._registered('feeds', 'f')  
+          
+  def feed(self, onestopId):
     """Load a feed by onestopId."""
-    return OnestopFeed.load(
+    return OnestopFeed.from_json(
       os.path.join(self.path, 'feeds', '%s.json'%onestopId)
     )
 
   def operators(self):
-    for filename in glob.glob(os.path.join(self.path, 'operators', 'o-*.geojson')):
-      yield entities.OnestopAgency.load(filename)
-    
+    return self._registered('operators', 'o')
+
   def operator(self, onestopId):
-    return entities.OnestopAgency.load(
-      os.path.join(self.path, 'feeds', '%s.geojson'%onestopId)
+    return entities.OnestopOperator.from_json(
+      os.path.join(self.path, 'operators', '%s.geojson'%onestopId)
     )
 
 class OnestopFeed(object):
@@ -60,7 +61,7 @@ class OnestopFeed(object):
     pass
   
   @classmethod
-  def load(cls, filename):
+  def from_json(cls, filename):
     """Load a Onestop Feed by filename."""
     assert os.path.exists(filename), "Filename does not exist: %s"%filename
     with open(filename) as f:
