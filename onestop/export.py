@@ -18,8 +18,8 @@ if __name__ == "__main__":
   g = mzgtfs.reader.Reader(args.filename, feedid=args.feedid)
   for agency in g.agencies():
     agency.preload()
-    oagency = entities.OnestopAgency.from_gtfs(agency)
-    print "Agency:", oagency.name()
+    oagency = entities.OnestopOperator.from_gtfs(agency)
+    print "Operator:", oagency.name()
     print "  Routes:", len(oagency.routes())
     if args.debug:
       for route in oagency.routes():
@@ -40,5 +40,3 @@ if __name__ == "__main__":
         indent=4, 
         separators=(',', ': ')
       )
-
-      
