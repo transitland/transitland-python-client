@@ -7,6 +7,8 @@ import re
 import mzgtfs.entities
 import mzgeohash
 
+import errors
+
 # Regexes
 REPLACE_CHAR = [
   # replace &, @, and / with ~
@@ -47,11 +49,13 @@ REPLACE_ABBR = [
 ]
 REPLACE_ABBR = [[re.compile(r'\b%s\b'%i), ''] for i in REPLACE_ABBR]
 
+##### Geohash utility functions #####
+
 def geohash_features(features):
   # Filter stops without valid coordinates...
   points = [feature.point() for feature in features if feature.point()]
   if not points:
-    raise Exception("Not enough points.")
+    raise errors.OnestopNoPoints("Not enough points.")
   c = centroid_points(points)
   return mzgeohash.neighborsfit(c, points)
   
@@ -75,15 +79,18 @@ class OnestopEntity(object):
   # OnestopID prefix.
   onestop_type = None
 
-  def __init__(self, name=None, point=None):
-    self._identifiers = {}
-    self._tags = {}
+  def __init__(self, name=None, onestop=None, geometry=None, **kwargs):
+    """Set name, OnestopID, and geometry."""
     self._name = name
-    self._point = point
+    self._geometry = geometry
+    self._onestop = onestop
+    self._identifiers = kwargs.get('identifiers', [])
+    self._tags = {}
     self.parents = set()
     self.children = set()
 
   def pclink(self, parent, child):
+    """Create a parent-child relationship."""
     parent.children.add(child)
     child.parents.add(parent)
 
@@ -91,17 +98,13 @@ class OnestopEntity(object):
     """A reasonable display name for the entity."""
     return self._name
     
-  def point(self):
-    """Return a point geometry for this entity."""
-    return self._point
-    
   def bbox(self):
     """Return a bounding box for this entity."""
     raise NotImplementedError
   
   def geometry(self):
     """Return a GeoJSON-type geometry for this entity."""
-    raise NotImplementedError
+    return self._geometry
 
   def geohash(self):
     """Return the geohash for this entity."""
@@ -113,32 +116,38 @@ class OnestopEntity(object):
     
   # References to GTFS entities.
   def identifiers(self):
-    ret = []
-    for k,v in self._identifiers.items():
-      c = {}
-      c['tags'] = copy.copy(v.data)
-      c['identifier'] = k
-      ret.append(c)
-    return ret
+    return self._identifiers
     
-  def add_identifier(self, entity):
-    # Ugly hack
-    entity._onestop_parent = self 
-    self._identifiers[entity.feedid()] = entity
+  def add_identifier(self, identifier, tags):
+    """Add original GTFS data."""    
+    if identifier in [i['identifier'] for i in self._identifiers]:
+      raise errors.OnestopExistingIdentifier(
+        "Identifier already present: %s"%identifier
+      )
+    self._identifiers.append({
+      'identifier': identifier,
+      'tags': tags
+    })
+  
+  def merge(self, item):
+    """Merge identifiers."""
+    for i in item.identifiers():
+      self.add_identifier(identifier=i['identifier'], tags=i['tags'])
   
   # Onestop methods
   def mangle(self, s):
-    """Mangle a string into an identifier."""
+    """Mangle a string into an Onestop component."""
     s = s.lower()
     for a,b in REPLACE_CHAR:
       s = a.sub(b,s)
     return s    
 
-  def onestop(self):
+  def onestop(self, cache=True):
     """Return the OnestopID for this entity."""
     # cache...
-    if getattr(self, '_onestop', None):
+    if cache and getattr(self, '_onestop', None):
       return self._onestop
+    # Create if necessary.
     self._onestop = '%s-%s-%s'%(
       self.onestop_type, 
       self.geohash(), 
@@ -146,32 +155,35 @@ class OnestopEntity(object):
     )
     return self._onestop
 
-class OnestopAgency(OnestopEntity):
+class OnestopOperator(OnestopEntity):
+  """Onestop Operator."""
   onestop_type = 'o'
   
   @classmethod
-  def load(cls, filename):
-    raise NotImplementedError
-  
-  @classmethod
   def from_gtfs(cls, gtfs_agency):
-    """Create a Onestop Agency from a GTFS Agency."""
+    """Load Onestop Operator from a GTFS Agency."""
     agency = cls(name=gtfs_agency.name())
-    agency.add_identifier(gtfs_agency)
+    agency.add_identifier(gtfs_agency.feedid(), gtfs_agency.data)
     # Group stops
     stops = {}
     for i in gtfs_agency.stops():
-      stop = OnestopStop(name=i.name(), point=i.point())
+      stop = OnestopStop(
+        name=i.name(), 
+        geometry=i.geometry()
+      )
       key = stop.onestop()
-      if key in stops:
-        stops[key].add_identifier(i)
-      else:
-        stop.add_identifier(i)
+      if key not in stops:
         stops[key] = stop
+      # Hack to maintain ref to stop
+      i._onestop_parent = stops[key]
+      stops[key].add_identifier(i.feedid(), i.data)
     # Routes
     routes = {}
     for i in gtfs_agency.routes():
-      route = OnestopRoute(name=i.name())
+      route = OnestopRoute(
+        name=i.name(),
+        geometry=i.geometry()
+      )
       if not i.stops():
         print "Yikes! No stops! Skipping this route."
         continue
@@ -179,18 +191,57 @@ class OnestopAgency(OnestopEntity):
         route.pclink(route, j._onestop_parent)
       key = route.onestop()
       if key in routes:
-        # hack
+        # raise KeyError("Route already exists!: %s"%key)
+        # Hack
         print "Route already exists, setting temp fix..."
         route._name = '%s~1'%route._name
         route._onestop = None
         key = route.onestop()
         print "set key to:", key
         assert key not in routes
-        # raise KeyError("Route already exists!: %s"%key)
       route.pclink(agency, route)
-      route.add_identifier(i)
+      route.add_identifier(i.feedid(), i.data)
       routes[key] = route
     # Return agency
+    return agency
+
+  @classmethod
+  def from_json(cls, filename):
+    """Load Onestop Operator from GeoJSON."""
+    with open(filename) as f:
+      data = json.load(f)
+    agency = cls(
+      name=data['name'],
+      onestop=data['onestopId']
+    )
+    agency._identifiers = data['identifiers']
+    agency._tags = data['tags']
+    # Add stops
+    stops = {}
+    for feature in data['features']:
+      if feature['onestopId'].startswith('s'):
+        stop = OnestopStop(
+          name=feature['name'], 
+          onestop=feature['onestopId'],
+          geometry=feature['geometry']
+        )
+        stop._identifiers = feature['identifiers']
+        stop._tags = feature['tags']
+        stops[stop.onestop()] = stop
+    # Add routes
+    for feature in data['features']:
+      if feature['onestopId'].startswith('r'):
+        route = OnestopRoute(
+          name=feature['name'],
+          onestop=feature['onestopId'],
+          geometry=feature['geometry']
+        )
+        route._identifiers = feature['identifiers']
+        route._tags = feature['tags']
+        # Get stop by id, add as child.
+        for stop in feature['serves']:
+          route.pclink(route, stops[stop])
+        agency.pclink(agency, route)
     return agency
 
   def geohash(self):
@@ -205,9 +256,9 @@ class OnestopAgency(OnestopEntity):
       'identifiers': self.identifiers(),
       'onestopId': self.onestop(),
       'serves': [i.onestop() for i in self.stops()],
-      'features': [i.geojson() for i in self.routes()] + [i.geojson() for i in self.stops()]
+      'features': [i.geojson() for i in self.routes() | self.stops()]
     }
-    
+
   def routes(self):
     return self.children
   
@@ -236,10 +287,7 @@ class OnestopRoute(OnestopEntity):
       'operatedBy': [i.onestop() for i in self.agencies()][0],
       'serves': [i.onestop() for i in self.stops()],
     }
-
-  def geometry(self):
-    return self._identifiers.values()[0].geometry()
-
+    
   def agencies(self):
     return self.parents
 
@@ -273,13 +321,12 @@ class OnestopStop(OnestopEntity):
       'identifiers': self.identifiers(),
       'servedBy': [i.onestop() for i in self.agencies()],
     }
+
+  # Work with other interfaces
+  def point(self):
+    """Return stop point."""
+    return self.geometry()['coordinates']
   
-  def geometry(self):
-    return {
-      "type": 'Point',
-      "coordinates": self.point(),
-    }
-    
   def agencies(self):
     agencies = set()
     for i in self.parents:
