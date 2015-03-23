@@ -81,13 +81,21 @@ class OnestopEntity(object):
 
   def __init__(self, name=None, onestop=None, geometry=None, **kwargs):
     """Set name, OnestopID, and geometry."""
-    self._name = name
-    self._geometry = geometry
-    self._onestop = onestop
-    self._identifiers = kwargs.get('identifiers', [])
-    self._tags = {}
-    self.parents = set()
-    self.children = set()
+    super(OnestopEntity, self).__init__(
+      name=name, 
+      onestop=onestop, 
+      geometry=geometry
+    )
+    self.url = kwargs.get('url')
+    self.feedFormat = kwargs.get('feedFormat', 'gtfs')
+  
+  @classmethod
+  def from_json(cls, filename):
+    raise NotImplementedError
+    
+  @classmethod
+  def from_gtfs(cls, filename):
+    raise NotImplementedError
 
   def pclink(self, parent, child):
     """Create a parent-child relationship."""
@@ -110,7 +118,7 @@ class OnestopEntity(object):
     """Return the geohash for this entity."""
     raise NotImplementedError
   
-  def geojson(self):
+  def json(self):
     """Return a GeoJSON representation of this entity."""
     raise NotImplementedError
     
@@ -154,7 +162,7 @@ class OnestopEntity(object):
       self.mangle(self.name())
     )
     return self._onestop
-
+  
 class OnestopOperator(OnestopEntity):
   """Onestop Operator."""
   onestop_type = 'o'
@@ -247,7 +255,7 @@ class OnestopOperator(OnestopEntity):
   def geohash(self):
     return geohash_features(self.stops())
     
-  def geojson(self):
+  def json(self):
     return {
       'type': 'FeatureCollection',
       'properties': {},
@@ -256,7 +264,7 @@ class OnestopOperator(OnestopEntity):
       'identifiers': self.identifiers(),
       'onestopId': self.onestop(),
       'serves': [i.onestop() for i in self.stops()],
-      'features': [i.geojson() for i in self.routes() | self.stops()]
+      'features': [i.json() for i in self.routes() | self.stops()]
     }
 
   def routes(self):
@@ -275,7 +283,7 @@ class OnestopRoute(OnestopEntity):
     """Return 10 characters of geohash."""
     return geohash_features(self.stops())
 
-  def geojson(self):
+  def json(self):
     return {
       'type': 'Feature',
       'properties': {},
@@ -310,7 +318,7 @@ class OnestopStop(OnestopEntity):
     """Return 10 characters of geohash."""
     return mzgeohash.encode(self.point())[:10]
     
-  def geojson(self):
+  def json(self):
     return {
       'type': 'Feature',
       'properties': {},

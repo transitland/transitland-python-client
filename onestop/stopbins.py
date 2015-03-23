@@ -37,12 +37,12 @@ class StopBin(object):
       stopbin.add_stop(stop)
     return stopbin
     
-  def geojson(self):
+  def json(self):
     return {
       'type': 'FeatureCollection',
       'properties': {},
       'prefix': self.prefix,
-      'features': [i.geojson() for i in self.stops()]
+      'features': [i.json() for i in self.stops()]
     }    
 
 if __name__ == "__main__":  
@@ -91,7 +91,7 @@ if __name__ == "__main__":
       print "Writing out StopBin:", stopbin.prefix, len(stopbin.stops())
       with open(filename, 'wb') as f:
         json.dump(
-          stopbin.geojson(), 
+          stopbin.json(), 
           f, 
           sort_keys=True, 
           indent=4, 
