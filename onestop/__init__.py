@@ -11,3 +11,5 @@ Modules:
   fetch - Feed aggregator
   
 """
+
+__version__ = '0.3'
