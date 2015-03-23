@@ -3,6 +3,7 @@ import sys
 import os
 import json
 
+import util
 import errors
 import registry
 import entities
@@ -90,11 +91,4 @@ if __name__ == "__main__":
       filename = os.path.join(args.outpath, 's-%s.geojson'%stopbin.prefix)
       print "Writing out StopBin:", stopbin.prefix, len(stopbin.stops())
       with open(filename, 'wb') as f:
-        json.dump(
-          stopbin.json(), 
-          f, 
-          sort_keys=True, 
-          indent=4, 
-          separators=(',', ': ')
-        )
-    
+        util.json_dump_pretty(stopbin.json(), f)
