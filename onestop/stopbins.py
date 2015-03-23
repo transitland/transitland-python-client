@@ -90,5 +90,11 @@ if __name__ == "__main__":
       filename = os.path.join(args.outpath, 's-%s.geojson'%stopbin.prefix)
       print "Writing out StopBin:", stopbin.prefix, len(stopbin.stops())
       with open(filename, 'wb') as f:
-        json.dump(stopbin.geojson(), f)
+        json.dump(
+          stopbin.geojson(), 
+          f, 
+          sort_keys=True, 
+          indent=4, 
+          separators=(',', ': ')
+        )
     
