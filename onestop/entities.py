@@ -81,13 +81,13 @@ class OnestopEntity(object):
 
   def __init__(self, name=None, onestop=None, geometry=None, **kwargs):
     """Set name, OnestopID, and geometry."""
-    super(OnestopEntity, self).__init__(
-      name=name, 
-      onestop=onestop, 
-      geometry=geometry
-    )
-    self.url = kwargs.get('url')
-    self.feedFormat = kwargs.get('feedFormat', 'gtfs')
+    self._name = name
+    self._geometry = geometry
+    self._onestop = onestop
+    self._identifiers = kwargs.get('identifiers', [])
+    self._tags = kwargs.get('tags', {})
+    self.parents = set()
+    self.children = set()
   
   @classmethod
   def from_json(cls, filename):
@@ -153,7 +153,7 @@ class OnestopEntity(object):
   def onestop(self, cache=True):
     """Return the OnestopID for this entity."""
     # cache...
-    if cache and getattr(self, '_onestop', None):
+    if cache and self._onestop:
       return self._onestop
     # Create if necessary.
     self._onestop = '%s-%s-%s'%(
@@ -162,16 +162,88 @@ class OnestopEntity(object):
       self.mangle(self.name())
     )
     return self._onestop
+
+class OnestopFeed(OnestopEntity):
+  """Read and write Onestop Feeds."""
+  onestop_type = 'f'
   
+  def __init__(self, name=None, onestop=None, geometry=None, **kwargs):
+    """Set name, OnestopID, and geometry."""
+    super(OnestopFeed, self).__init__(
+      name=name, 
+      onestop=onestop, 
+      geometry=geometry
+    )
+    self.url = kwargs.get('url')
+    self.md5 = kwargs.get('md5')
+    self.feedFormat = kwargs.get('feedFormat', 'gtfs')
+
+  def geohash(self):
+    return geohash_features(self.stops())
+
+  def json(self):
+    return {
+      "onestopId": self.onestop(),
+      "url": self.url,
+      "md5": None,
+      "feedFormat": self.feedFormat,
+      "tags": self._tags,
+      "operatorsInFeed": [
+        {
+          'onestopId': i.onestop(),
+          'gtfsAgencyId': i.mangle(i.name())
+        }
+        for i in self.operators()
+      ]
+    }
+
+  @classmethod
+  def from_gtfs(cls, filename, debug=False, **kw):
+    # Create feed
+    feed = cls(**kw)
+    g = mzgtfs.reader.Reader(filename, debug=debug)
+    # Load and display information about agencies
+    for agency in g.agencies():
+      agency.preload()
+      oagency = OnestopOperator.from_gtfs(agency, feedid=feed.name())
+      feed.pclink(feed, oagency)
+    return feed
+  
+  @classmethod
+  def from_json(cls, filename):
+    raise NotImplementedError
+
+  def operators(self):
+    return self.children
+  
+  def operatorsInFeed(self):
+    return [i.onestop() for i in self.operators()]
+
+  def routes(self):
+    routes = set()
+    for i in self.operators():
+      routes |= i.routes()
+    return routes
+  
+  def stops(self):
+    stops = set()
+    for i in self.operators():
+      stops |= i.stops()
+    return stops
+
+  def fetch(self, filename):
+    """Download the GTFS feed to a file."""
+    urllib.urlretrieve(self.url, filename)
+
 class OnestopOperator(OnestopEntity):
   """Onestop Operator."""
   onestop_type = 'o'
   
   @classmethod
-  def from_gtfs(cls, gtfs_agency):
+  def from_gtfs(cls, gtfs_agency, feedid='unknown'):
     """Load Onestop Operator from a GTFS Agency."""
     agency = cls(name=gtfs_agency.name())
-    agency.add_identifier(gtfs_agency.feedid(), gtfs_agency.data)
+    agency.add_identifier(gtfs_agency.feedid(feedid), gtfs_agency.data)
     # Group stops
     stops = {}
     for i in gtfs_agency.stops():
@@ -184,7 +256,7 @@ class OnestopOperator(OnestopEntity):
         stops[key] = stop
       # Hack to maintain ref to stop
       i._onestop_parent = stops[key]
-      stops[key].add_identifier(i.feedid(), i.data)
+      stops[key].add_identifier(i.feedid(feedid), i.data)
     # Routes
     routes = {}
     for i in gtfs_agency.routes():
@@ -208,7 +280,7 @@ class OnestopOperator(OnestopEntity):
         print "set key to:", key
         assert key not in routes
       route.pclink(agency, route)
-      route.add_identifier(i.feedid(), i.data)
+      route.add_identifier(i.feedid(feedid), i.data)
       routes[key] = route
     # Return agency
     return agency
@@ -267,6 +339,7 @@ class OnestopOperator(OnestopEntity):
       'features': [i.json() for i in self.routes() | self.stops()]
     }
 
+  # Agency methods
   def routes(self):
     return self.children
   
@@ -295,7 +368,8 @@ class OnestopRoute(OnestopEntity):
       'operatedBy': [i.onestop() for i in self.agencies()][0],
       'serves': [i.onestop() for i in self.stops()],
     }
-    
+  
+  # Route methods
   def agencies(self):
     return self.parents
 
@@ -334,7 +408,8 @@ class OnestopStop(OnestopEntity):
   def point(self):
     """Return stop point."""
     return self.geometry()['coordinates']
-  
+
+  # Stop methods
   def agencies(self):
     agencies = set()
     for i in self.parents:
