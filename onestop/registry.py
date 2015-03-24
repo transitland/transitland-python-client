@@ -24,11 +24,11 @@ class OnestopRegistry(object):
       ]
 
   def feeds(self):
-    return self._registered('feeds', 'f')  
+    return self._registered('feeds', 'f')
           
   def feed(self, onestopId):
     """Load a feed by onestopId."""
-    return OnestopFeed.from_json(
+    return entities.OnestopFeed.from_json(
       os.path.join(self.path, 'feeds', '%s.json'%onestopId)
     )
 
