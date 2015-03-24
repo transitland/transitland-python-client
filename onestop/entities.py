@@ -122,6 +122,24 @@ class OnestopEntity(object):
   def json(self):
     """Return a GeoJSON representation of this entity."""
     raise NotImplementedError
+  
+  # Todo: Longer discussion on formats...
+  def json_datastore(self, rels=True):
+    """Return a GeoJSON representation for datastore."""
+    data = self.json()
+    skip = ['identifiers', 'features']
+    if not rels:
+      skip += [
+        'serves', 
+        'doesNotServe', 
+        'servedBy', 
+        'notServedBy', 
+        # 'operatedBy' # required!
+      ]
+    for key in skip:
+      data.pop(key, None)
+    data['tags'] = self.merge_identifiers()
+    return data
     
   # References to GTFS entities.
   def add_identifier(self, identifier, tags):
@@ -139,6 +157,12 @@ class OnestopEntity(object):
     """Merge identifiers."""
     for i in item.identifiers:
       self.add_identifier(identifier=i['identifier'], tags=i['tags'])
+  
+  def merge_identifiers(self):
+    data = {}
+    for i in sorted(self.identifiers, key=lambda x:x['identifier']):
+      data.update(i['tags'])
+    return data
   
   # Onestop methods
   def mangle(self, s):
