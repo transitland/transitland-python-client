@@ -340,6 +340,7 @@ class OnestopOperator(OnestopEntity):
   def json(self):
     return {
       'type': 'FeatureCollection',
+      'geometry': self.geometry(),      
       'properties': {},
       'name': self.name(),
       'tags': self.tags,
