@@ -4,10 +4,11 @@ import json
 import copy
 import re
 
+import util
+import errors
+
 import mzgtfs.entities
 import mzgeohash
-
-import errors
 
 # Regexes
 REPLACE_CHAR = [
@@ -83,9 +84,9 @@ class OnestopEntity(object):
     """Set name, OnestopID, and geometry."""
     self._name = name
     self._geometry = geometry
-    self._onestop = onestop
-    self._identifiers = kwargs.get('identifiers', [])
-    self._tags = kwargs.get('tags', {})
+    self._onestop = onestop or kwargs.get('onestopId') # equivalent
+    self.identifiers = kwargs.get('identifiers', [])
+    self.tags = kwargs.get('tags', {})
     self.parents = set()
     self.children = set()
   
@@ -123,23 +124,20 @@ class OnestopEntity(object):
     raise NotImplementedError
     
   # References to GTFS entities.
-  def identifiers(self):
-    return self._identifiers
-    
   def add_identifier(self, identifier, tags):
     """Add original GTFS data."""    
-    if identifier in [i['identifier'] for i in self._identifiers]:
+    if identifier in [i['identifier'] for i in self.identifiers]:
       raise errors.OnestopExistingIdentifier(
         "Identifier already present: %s"%identifier
       )
-    self._identifiers.append({
+    self.identifiers.append({
       'identifier': identifier,
       'tags': tags
     })
   
   def merge(self, item):
     """Merge identifiers."""
-    for i in item.identifiers():
+    for i in item.identifiers:
       self.add_identifier(identifier=i['identifier'], tags=i['tags'])
   
   # Onestop methods
@@ -152,7 +150,7 @@ class OnestopEntity(object):
 
   def onestop(self, cache=True):
     """Return the OnestopID for this entity."""
-    # cache...
+    # Cache...
     if cache and self._onestop:
       return self._onestop
     # Create if necessary.
@@ -168,14 +166,14 @@ class OnestopFeed(OnestopEntity):
   onestop_type = 'f'
   
   def __init__(self, name=None, onestop=None, geometry=None, **kwargs):
-    """Set name, OnestopID, and geometry."""
     super(OnestopFeed, self).__init__(
       name=name, 
       onestop=onestop, 
-      geometry=geometry
+      geometry=geometry,
+      **kwargs
     )
     self.url = kwargs.get('url')
-    self.md5 = kwargs.get('md5')
+    self.sha1 = kwargs.get('sha1')
     self.feedFormat = kwargs.get('feedFormat', 'gtfs')
 
   def geohash(self):
@@ -185,9 +183,9 @@ class OnestopFeed(OnestopEntity):
     return {
       "onestopId": self.onestop(),
       "url": self.url,
-      "md5": None,
+      "sha1": self.sha1,
       "feedFormat": self.feedFormat,
-      "tags": self._tags,
+      "tags": self.tags,
       "operatorsInFeed": [
         {
           'onestopId': i.onestop(),
@@ -200,6 +198,7 @@ class OnestopFeed(OnestopEntity):
   @classmethod
   def from_gtfs(cls, filename, debug=False, **kw):
     # Create feed
+    kw['sha1'] = util.sha1(filename)
     feed = cls(**kw)
     g = mzgtfs.reader.Reader(filename, debug=debug)
     # Load and display information about agencies
@@ -211,7 +210,9 @@ class OnestopFeed(OnestopEntity):
   
   @classmethod
   def from_json(cls, filename):
-    raise NotImplementedError
+    with open(filename) as f:
+      data = json.load(f)
+    return cls(**data)
 
   def operators(self):
     return self.children
@@ -242,6 +243,7 @@ class OnestopOperator(OnestopEntity):
   @classmethod
   def from_gtfs(cls, gtfs_agency, feedid='unknown'):
     """Load Onestop Operator from a GTFS Agency."""
+    route_counter = 0
     agency = cls(name=gtfs_agency.name())
     agency.add_identifier(gtfs_agency.feedid(feedid), gtfs_agency.data)
     # Group stops
@@ -274,7 +276,8 @@ class OnestopOperator(OnestopEntity):
         # raise KeyError("Route already exists!: %s"%key)
         # Hack
         print "Route already exists, setting temp fix..."
-        route._name = '%s~1'%route._name
+        route_counter += 1
+        route._name = '%s~%s'%(route._name, route_counter)
         route._onestop = None
         key = route.onestop()
         print "set key to:", key
@@ -290,34 +293,17 @@ class OnestopOperator(OnestopEntity):
     """Load Onestop Operator from GeoJSON."""
     with open(filename) as f:
       data = json.load(f)
-    agency = cls(
-      name=data['name'],
-      onestop=data['onestopId']
-    )
-    agency._identifiers = data['identifiers']
-    agency._tags = data['tags']
+    agency = cls(**data)
     # Add stops
     stops = {}
     for feature in data['features']:
       if feature['onestopId'].startswith('s'):
-        stop = OnestopStop(
-          name=feature['name'], 
-          onestop=feature['onestopId'],
-          geometry=feature['geometry']
-        )
-        stop._identifiers = feature['identifiers']
-        stop._tags = feature['tags']
+        stop = OnestopStop(**feature)
         stops[stop.onestop()] = stop
     # Add routes
     for feature in data['features']:
       if feature['onestopId'].startswith('r'):
-        route = OnestopRoute(
-          name=feature['name'],
-          onestop=feature['onestopId'],
-          geometry=feature['geometry']
-        )
-        route._identifiers = feature['identifiers']
-        route._tags = feature['tags']
+        route = OnestopRoute(**feature)
         # Get stop by id, add as child.
         for stop in feature['serves']:
           route.pclink(route, stops[stop])
@@ -332,8 +318,8 @@ class OnestopOperator(OnestopEntity):
       'type': 'FeatureCollection',
       'properties': {},
       'name': self.name(),
-      'tags': self._tags,
-      'identifiers': self.identifiers(),
+      'tags': self.tags,
+      'identifiers': self.identifiers,
       'onestopId': self.onestop(),
       'serves': [i.onestop() for i in self.stops()],
       'features': [i.json() for i in self.routes() | self.stops()]
@@ -363,8 +349,8 @@ class OnestopRoute(OnestopEntity):
       'geometry': self.geometry(),
       'onestopId': self.onestop(),
       'name': self.name(),
-      'tags': self._tags,
-      'identifiers': self.identifiers(),
+      'tags': self.tags,
+      'identifiers': self.identifiers,
       'operatedBy': [i.onestop() for i in self.agencies()][0],
       'serves': [i.onestop() for i in self.stops()],
     }
@@ -399,8 +385,8 @@ class OnestopStop(OnestopEntity):
       'geometry': self.geometry(),
       'onestopId': self.onestop(),
       'name': self.name(),
-      'tags': self._tags,
-      'identifiers': self.identifiers(),
+      'tags': self.tags,
+      'identifiers': self.identifiers,
       'servedBy': [i.onestop() for i in self.agencies()],
     }
 
