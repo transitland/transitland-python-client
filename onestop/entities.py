@@ -4,10 +4,11 @@ import json
 import copy
 import re
 
+import geom
 import util
 import errors
 
-import mzgtfs.entities
+import mzgtfs.reader
 import mzgeohash
 
 # Regexes
@@ -50,29 +51,6 @@ REPLACE_ABBR = [
 ]
 REPLACE_ABBR = [[re.compile(r'\b%s\b'%i), ''] for i in REPLACE_ABBR]
 
-##### Geohash utility functions #####
-
-def geohash_features(features):
-  # Filter stops without valid coordinates...
-  points = [feature.point() for feature in features if feature.point()]
-  if not points:
-    raise errors.OnestopNoPoints("Not enough points.")
-  c = centroid_points(points)
-  return mzgeohash.neighborsfit(c, points)
-  
-def centroid_points(points):
-  """Return the lon,lat centroid for features."""
-  # Todo: Geographic center, or simple average?
-  import ogr, osr
-  multipoint = ogr.Geometry(ogr.wkbMultiPoint)
-  # spatialReference = osr.SpatialReference() ...
-  for point in points:
-    p = ogr.Geometry(ogr.wkbPoint)
-    p.AddPoint(point[1], point[0])
-    multipoint.AddGeometry(p)
-  point = multipoint.Centroid()
-  return (point.GetY(), point.GetX())
-
 ##### Entities #####
 
 class OnestopEntity(object):
@@ -107,12 +85,9 @@ class OnestopEntity(object):
     """A reasonable display name for the entity."""
     return self._name
     
-  def bbox(self):
-    """Return a bounding box for this entity."""
-    raise NotImplementedError
-  
   def geometry(self):
     """Return a GeoJSON-type geometry for this entity."""
+    # TODO: Right now, this has to be supplied by GTFS Entity...
     return self._geometry
 
   def geohash(self):
@@ -201,8 +176,8 @@ class OnestopFeed(OnestopEntity):
     self.feedFormat = kwargs.get('feedFormat', 'gtfs')
 
   def geohash(self):
-    return geohash_features(self.stops())
-
+    return geom.geohash_features(self.stops())
+    
   def json(self):
     return {
       "onestopId": self.onestop(),
@@ -267,9 +242,12 @@ class OnestopOperator(OnestopEntity):
   @classmethod
   def from_gtfs(cls, gtfs_agency, feedid='unknown'):
     """Load Onestop Operator from a GTFS Agency."""
-    route_counter = 0
-    agency = cls(name=gtfs_agency.name())
-    agency.add_identifier(gtfs_agency.feedid(feedid), gtfs_agency.data)
+    route_counter = collections.defaultdict(int)
+    agency = cls(
+      name=gtfs_agency.name(),
+      geometry=gtfs_agency.geometry()
+    )
+    agency.add_identifier(gtfs_agency.feedid(feedid), gtfs_agency.data._asdict())
     # Group stops
     stops = {}
     for i in gtfs_agency.stops():
@@ -282,7 +260,7 @@ class OnestopOperator(OnestopEntity):
         stops[key] = stop
       # Hack to maintain ref to stop
       i._onestop_parent = stops[key]
-      stops[key].add_identifier(i.feedid(feedid), i.data)
+      stops[key].add_identifier(i.feedid(feedid), i.data._asdict())
     # Routes
     routes = {}
     for i in gtfs_agency.routes():
@@ -300,14 +278,14 @@ class OnestopOperator(OnestopEntity):
         # raise KeyError("Route already exists!: %s"%key)
         # Hack
         print "Route already exists, setting temp fix..."
-        route_counter += 1
-        route._name = '%s~%s'%(route._name, route_counter)
+        route_counter[key] += 1
+        route._name = '%s~%s'%(route._name, route_counter[key])
         route._onestop = None
         key = route.onestop()
         print "set key to:", key
         assert key not in routes
       route.pclink(agency, route)
-      route.add_identifier(i.feedid(feedid), i.data)
+      route.add_identifier(i.feedid(feedid), i.data._asdict())
       routes[key] = route
     # Return agency
     return agency
@@ -335,7 +313,7 @@ class OnestopOperator(OnestopEntity):
     return agency
 
   def geohash(self):
-    return geohash_features(self.stops())
+    return geom.geohash_features(self.stops())
     
   def json(self):
     return {
@@ -365,7 +343,7 @@ class OnestopRoute(OnestopEntity):
   
   def geohash(self):
     """Return 10 characters of geohash."""
-    return geohash_features(self.stops())
+    return geom.geohash_features(self.stops())
 
   def json(self):
     return {
