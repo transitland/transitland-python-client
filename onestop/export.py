@@ -25,7 +25,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   # Create dirs
-  for i in ['feeds', 'operators']:
+  for i in ['feeds', 'operators', 'data']:
     try:
       os.makedirs(i)
     except OSError, e:
@@ -34,6 +34,7 @@ if __name__ == "__main__":
   # Load from registry, then update.
   carry = {}
   carry['name'] = args.feedid
+  checksum = None
   try:
     r = registry.OnestopRegistry(args.onestop)
     f = r.feed('f-%s'%args.feedid)
@@ -42,6 +43,7 @@ if __name__ == "__main__":
   else:
     carry['url'] = f.url
     carry['tags'] = f.tags
+    checksum = f.sha1
     # Use previous url if no filename or url was provided.
     args.url = args.url or f.url
   
@@ -50,14 +52,14 @@ if __name__ == "__main__":
   if args.filename:
     filename = args.filename
   elif args.url:
-    print "Downloading:", args.url
-    filename = tempfile.NamedTemporaryFile().name
-    urllib.urlretrieve(args.url, filename)
-    carry['url'] = args.url
-    print "...done"
+    filename = util.download(
+      args.url, 
+      os.path.join('data', 'g-%s.zip'%args.feedid),
+      checksum=checksum
+    )
   else:
     raise Exception("No filename or url provided.")
-    
+  
   # Load from GTFS.
   feed = entities.OnestopFeed.from_gtfs(filename, debug=args.debug, **carry)
 
