@@ -54,7 +54,7 @@ if __name__ == "__main__":
   elif args.url:
     filename = util.download(
       args.url, 
-      os.path.join('data', 'g-%s.zip'%args.feedid),
+      os.path.join('data', 'f-%s.zip'%args.feedid),
       checksum=checksum
     )
   else:
