@@ -233,7 +233,7 @@ class OnestopFeed(OnestopEntity):
 
   def fetch(self, filename):
     """Download the GTFS feed to a file."""
-    urllib.urlretrieve(self.url, filename)
+    util.download(self.url, filename, checksum=self.sha1)
 
 class OnestopOperator(OnestopEntity):
   """Onestop Operator."""
