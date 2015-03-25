@@ -37,7 +37,7 @@ if __name__ == "__main__":
   checksum = None
   try:
     r = registry.OnestopRegistry(args.onestop)
-    f = r.feed('f-%s'%args.feedid)
+    f = r.feed(args.feedid)
   except IOError, e:
     pass
   else:
@@ -54,7 +54,7 @@ if __name__ == "__main__":
   elif args.url:
     filename = util.download(
       args.url, 
-      os.path.join('data', 'f-%s.zip'%args.feedid),
+      os.path.join('data', '%s.zip'%args.feedid),
       checksum=checksum
     )
   else:
@@ -64,13 +64,13 @@ if __name__ == "__main__":
   feed = entities.OnestopFeed.from_gtfs(filename, debug=args.debug, **carry)
 
   # Print basic feed information.
-  print "Feed:", 'f-%s'%args.feedid
+  print "Feed:", '%s'%args.feedid
   print "  Operators:", len(feed.operators())
   print "  Routes:", len(feed.routes())
   print "  Stops:", len(feed.stops())
 
   # Write out updated feed.
-  outfile = os.path.join('feeds', 'f-%s.json'%args.feedid)
+  outfile = os.path.join('feeds', '%s.json'%args.feedid)
   with open(outfile, 'w') as f:
     util.json_dump_pretty(feed.json(), f)
   
