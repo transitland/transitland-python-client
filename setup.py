@@ -15,6 +15,6 @@ setup(
   zip_safe=False,
   # Include examples.
   package_data = {
-    '': ['*.txt', '*.md', '*.zip']
+    '': ['*.txt', '*.md', '*.zip', '*.json', '*.geojson']
   }  
 )
