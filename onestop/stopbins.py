@@ -34,7 +34,7 @@ class StopBin(object):
       data = json.load(f)
     stopbin = cls(prefix=data['prefix'])
     for feature in data['features']:
-      stop = entities.OnestopStop(**feature)
+      stop = entities.OnestopStop(feature)
       stopbin.add_stop(stop)
     return stopbin
     
@@ -48,8 +48,8 @@ class StopBin(object):
 
 if __name__ == "__main__":  
   parser = argparse.ArgumentParser(description='Bin Onestop Stops by geohash')
-  parser.add_argument('path', help='Onestop Registry Path')
-  parser.add_argument('outpath', help='Binned stops output path')
+  parser.add_argument('operators', nargs='*', help='Operator IDs')
+  parser.add_argument('--onestop', help='Onestop Registry path', default='.')
   parser.add_argument('--length', 
     dest='prefixlen',
     help='Geohash prefix length', 
@@ -60,25 +60,29 @@ if __name__ == "__main__":
     action='store_true')
   args = parser.parse_args()
 
-  r = registry.OnestopRegistry(path=args.path)
-  for o in r.operators():
+  r = registry.OnestopRegistry(path=args.onestop)
+  operators = args.operators or r.operators()
+  for o in operators:
     stopbins = {}
     operator = r.operator(o)
     for stop in operator.stops():
       prefix = stop.geohash()[:args.prefixlen]
       assert len(prefix) == args.prefixlen
       # Load StopBins if exists.
-      filename = os.path.join(args.outpath, 's-%s.geojson'%prefix)
+      filename = os.path.join(args.onestop, 'stops', 's-%s.geojson'%prefix)
       if prefix in stopbins:
+        print "Already loaded stopbin:", prefix
         stopbin = stopbins[prefix]
       elif os.path.exists(filename):
         print "Loading StopBins from GeoJSON:", prefix
         stopbin = StopBin.from_json(filename)
+        stopbins[prefix] = stopbin
         print " ... %s stops"%len(stopbin._stops)
       else:
         print "Creating new StopBins:", prefix
         stopbin = StopBin(prefix)
         stopbins[prefix] = stopbin
+
       # Merge the Stop into StopBins.
       stopbin.add_stop(stop)
 
@@ -88,7 +92,12 @@ if __name__ == "__main__":
     
     # Write output      
     for stopbin in stopbins.values():
-      filename = os.path.join(args.outpath, 's-%s.geojson'%stopbin.prefix)
+      filename = os.path.join(
+        args.onestop, 
+        'stops', 
+        's-%s.geojson'%stopbin.prefix
+        )
       print "Writing out StopBin:", stopbin.prefix, len(stopbin.stops())
+      data = stopbin.json()
       with open(filename, 'wb') as f:
-        util.json_dump_pretty(stopbin.json(), f)
+        util.json_dump_pretty(data, f)
