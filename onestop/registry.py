@@ -28,14 +28,16 @@ class OnestopRegistry(object):
           
   def feed(self, onestopId):
     """Load a feed by onestopId."""
-    return entities.OnestopFeed.from_json(
-      os.path.join(self.path, 'feeds', '%s.json'%onestopId)
-    )
+    filename = os.path.join(self.path, 'feeds', '%s.json'%onestopId)
+    with open(filename) as f:
+      data = json.load(f)    
+    return entities.OnestopFeed.from_json(data)
 
   def operators(self):
     return self._registered('operators', 'o')
 
   def operator(self, onestopId):
-    return entities.OnestopOperator.from_json(
-      os.path.join(self.path, 'operators', '%s.geojson'%onestopId)
-    )
+    filename = os.path.join(self.path, 'operators', '%s.geojson'%onestopId)
+    with open(filename) as f:
+      data = json.load(f)
+    return entities.OnestopOperator.from_json(data)
