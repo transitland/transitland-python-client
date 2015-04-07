@@ -1,6 +1,8 @@
 """Geometry utilities."""
 import mzgeohash
 
+import errors
+
 def geohash_features(features):
   # Filter stops without valid coordinates...
   points = [feature.point() for feature in features if feature.point()]
