@@ -6,10 +6,15 @@ This library implements an interface for Onestop-IDs:
   https://github.com/transit-land/onestop-id-registry
 
 Modules:
-  onestop - Classes for reading and writing Onestop-IDs
-  geohash - Simple GeoHash implementation
+  registry - Onestop Registry reader
+  entities - Onestop entities  
+  geom - Geometry utilities
+  util - Other utilities
+  errors - Exceptions
+  update - Update operators
+  stopbins - Update Stop Bins
   fetch - Feed aggregator
   
 """
 
-__version__ = '0.3'
+__version__ = '0.5'
