@@ -4,20 +4,28 @@ import unittest
 import sys
 import pprint
 
+import mzgtfs.feed
+
+import util
 import entities
 
+def operator_from_feed(*args, **kw):
+  return mzgtfs.feed.Feed(util.example_feed(*args, **kw))
+
+class TestOnestopEntity(unittest.TestCase):
+  pass
+
+class TestOnestopFeed(unittest.TestCase):
+  def test_from_gtfs(self):
+    feed = operator_from_feed()
+    onestopfeed = entities.OnestopFeed.from_gtfs(
+      feed,
+      name='test'
+      )
+    assert onestopfeed.name() == 'test'
+    assert onestopfeed.onestop() == 'f-9qs-test'
+
 class TestOnestopOperator(unittest.TestCase):
-  def setUp(self):
-    self.path = os.path.join('examples', 'o-9qs-demotransitauthority.geojson')
-  
-  def test_from_json(self):
-    agency = entities.OnestopOperator.from_json(self.path)
-    assert agency.name() == 'Demo Transit Authority'
-    assert agency.onestop() == 'o-9qs-demotransitauthority'
-    assert len(agency.stops()) == 9
-    assert len(agency.routes()) == 5
-    assert 's-9qscwx8n60-nyecountyairportdemo' in [i.onestop() for i in agency.stops()]
-    assert 'r-9qt1-50' in [i.onestop() for i in agency.routes()]
-      
-if __name__ == '__main__':
-    unittest.main()
+  def test_init(self):
+    entity = entities.OnestopOperator()
+    
