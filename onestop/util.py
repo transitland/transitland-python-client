@@ -39,9 +39,16 @@ def sha1file(filename, blocksize=65536):
           chunk = f.read(blocksize)
   return h.hexdigest()
 
-def example_feed(feed='sample-feed.zip'):
+def example_registry(path=None):
+  return os.path.join(
+    os.path.dirname(__file__), 
+    'examples'    
+  )
+
+def example_feed(feed='f-9qs-dta.zip'):
   return os.path.join(
     os.path.dirname(__file__), 
     'examples',
+    'data',
     feed
     )
