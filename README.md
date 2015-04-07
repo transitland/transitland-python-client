@@ -1,5 +1,7 @@
 # Onestop-ID Registry Python Client
 
+[![Circle CI](https://circleci.com/gh/transitland/onestop-id-python-client.png?style=badge)](https://circleci.com/gh/transitland/onestop-id-python-client)
+
 This is a Python client for the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
 
 ## Installation
@@ -16,7 +18,7 @@ Alternatively, [download from PyPi](https://pypi.python.org/pypi/onestop) or clo
 python ./setup.py install
 ```
 
-The dependencies [mzgeohash](https://github.com/transitland/mapzen-geohash) and [mzgttfs](https://github.com/transitland/mapzen-gtfs) will be automatically installed using the above methods.
+The dependencies [mzgeohash](https://github.com/transitland/mapzen-geohash) and [mzgtfs](https://github.com/transitland/mapzen-gtfs) will be automatically installed using the above methods.
 
 
 ## Working with feeds
