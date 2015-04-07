@@ -88,7 +88,7 @@ class OnestopEntity(object):
     return self.onestop()
 
   def tags(self):
-    return self.data.get('tags', {})
+    return self.data.get('tags') or {}
 
   def mangle(self, s):
     """Mangle a string into an Onestop component."""
@@ -200,7 +200,7 @@ class OnestopFeed(OnestopEntity):
     return self.data.get('sha1')
     
   def feedFormat(self):
-    return self.data.get('feedFormat')
+    return self.data.get('feedFormat', 'gtfs')
 
   # Download the latest feed.
   def fetch(self, filename):
