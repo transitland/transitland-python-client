@@ -9,6 +9,7 @@ import util
 import errors
 
 import mzgtfs.feed
+import mzgtfs.util
 import mzgeohash
 
 # Regexes
@@ -70,6 +71,10 @@ class OnestopEntity(object):
     """A reasonable display name for the entity."""
     return self.data.get('name')
   
+  def id(self):
+    """Alias to onestop()"""
+    return self.onestop()
+
   def onestop(self, cache=True):
     """Return the OnestopID for this entity."""
     # Cache...
@@ -83,13 +88,6 @@ class OnestopEntity(object):
     )
     return self.data['onestopId']
 
-  def id(self):
-    """Alias to onestop()"""
-    return self.onestop()
-
-  def tags(self):
-    return self.data.get('tags') or {}
-
   def mangle(self, s):
     """Mangle a string into an Onestop component."""
     s = s.lower()
@@ -98,6 +96,13 @@ class OnestopEntity(object):
     return s    
 
   # Entity geometry.
+  def geohash(self, cache=True):
+    """Return the geohash for this entity."""
+    # Cache...
+    if cache and 'geohash' in self.data:
+      return self.data.get('geohash')
+    raise NotImplementedError
+
   def geometry(self):
     """Return a GeoJSON-type geometry for this entity."""
     # TODO: Right now, this has to be supplied by GTFS Entity...
@@ -112,10 +117,6 @@ class OnestopEntity(object):
     c = self.point()
     return [c[0], c[1], c[0], c[1]]
   
-  def geohash(self):
-    """Return the geohash for this entity."""
-    return self.data.get('geohash')
-
   # Load from GTFS or from JSON.
   @classmethod
   def from_gtfs(cls, feed):
@@ -148,7 +149,10 @@ class OnestopEntity(object):
     data['tags'] = self.merge_identifiers()
     return data
 
-  # References to GTFS entities.
+  # Tags and identifiers
+  def tags(self):
+    return self.data.get('tags') or {}
+
   def add_identifier(self, identifier, tags):
     """Add GTFS data to the set of identifiers."""
     if identifier in [i['identifier'] for i in self.identifiers]:
@@ -205,11 +209,11 @@ class OnestopFeed(OnestopEntity):
   # Download the latest feed.
   def fetch(self, filename):
     """Download the GTFS feed to a file."""
-    util.download(self.url(), filename, checksum=self.sha1)  
+    util.download(self.url(), filename, sha1=self.sha1())
 
   # Load / dump
   @classmethod
-  def from_gtfs(cls, feed, **kw):
+  def from_gtfs(cls, feed, feedid='f-0-unknown', **kw):
     # Create feed
     kw['sha1'] = util.sha1file(feed.filename)
     kw['geohash'] = geom.geohash_features(feed.stops())
@@ -217,7 +221,7 @@ class OnestopFeed(OnestopEntity):
     # Load and display information about agencies
     for agency in feed.agencies():
       agency.preload()
-      oagency = OnestopOperator.from_gtfs(agency, feedid=onestopfeed.name())
+      oagency = OnestopOperator.from_gtfs(agency, feedid=feedid)
       onestopfeed.add_child(oagency)
     return onestopfeed
   
@@ -239,23 +243,35 @@ class OnestopFeed(OnestopEntity):
     }
 
   # Graph
-  def operators(self):
-    return set(self.children) # copy
-  
   def operatorsInFeed(self):
     return [i.onestop() for i in self.operators()]
 
+  def operators(self):
+    return set(self.children) # copy
+  
+  def operator(self, onestopId):
+    """Return a single operator by Onestop ID."""
+    return mzgtfs.util.filtfirst(self.operators(), onestop=onestopId)
+  
   def routes(self):
     routes = set()
     for i in self.operators():
       routes |= i.routes()
     return routes
+
+  def route(self, onestopId):
+    """Return a single route by Onestop ID."""
+    return mzgtfs.util.filtfirst(self.routes(), onestop=onestopId)
   
   def stops(self):
     stops = set()
     for i in self.operators():
       stops |= i.stops()
     return stops
+
+  def stop(self, onestopId):
+    """Return a single stop by Onestop ID."""
+    return mzgtfs.util.filtfirst(self.stops(), onestop=onestopId)
 
 class OnestopOperator(OnestopEntity):
   """Onestop Operator."""
@@ -266,7 +282,7 @@ class OnestopOperator(OnestopEntity):
     
   # Load / dump
   @classmethod
-  def from_gtfs(cls, gtfs_agency, feedid='unknown'):
+  def from_gtfs(cls, gtfs_agency, feedid='f-0-unknown'):
     """Load Onestop Operator from a GTFS Agency."""
     route_counter = collections.defaultdict(int)
     agency = cls(
@@ -308,7 +324,7 @@ class OnestopOperator(OnestopEntity):
         # Hack
         print "Route already exists, setting temp fix..."
         route_counter[key] += 1
-        route.data['name'] = '%s~%s'%(route._name, route_counter[key])
+        route.data['name'] = '%s~%s'%(route.data['name'], route_counter[key])
         route.data['onestop'] = None
         key = route.onestop()
         print "set key to:", key
@@ -327,12 +343,12 @@ class OnestopOperator(OnestopEntity):
     stops = {}
     for feature in data['features']:
       if feature['onestopId'].startswith('s'):
-        stop = OnestopStop(feature)
+        stop = OnestopStop.from_json(feature)
         stops[stop.onestop()] = stop
     # Add routes
     for feature in data['features']:
       if feature['onestopId'].startswith('r'):
-        route = OnestopRoute(feature)
+        route = OnestopRoute.from_json(feature)
         # Get stop by id, add as child.
         for stop in feature['serves']:
           route.pclink(route, stops[stop])
@@ -355,12 +371,20 @@ class OnestopOperator(OnestopEntity):
   # Graph
   def routes(self):
     return self.children
+
+  def route(self, onestopId):
+    """Return a single route by Onestop ID."""
+    return mzgtfs.util.filtfirst(self.routes(), onestop=onestopId)
   
   def stops(self):
     stops = set()
     for i in self.routes():
       stops |= i.stops()
     return stops  
+
+  def stop(self, onestopId):
+    """Return a single stop by Onestop ID."""
+    return mzgtfs.util.filtfirst(self.stops(), onestop=onestopId)
         
 class OnestopRoute(OnestopEntity):
   onestop_type = 'r'
@@ -379,16 +403,25 @@ class OnestopRoute(OnestopEntity):
       'name': self.name(),
       'tags': self.tags(),
       'identifiers': self.identifiers,
-      'operatedBy': [i.onestop() for i in self.agencies()][0],
+      'operatedBy': [i.onestop() for i in self.operators()][0],
       'serves': [i.onestop() for i in self.stops()],
     }
   
   # Graph
-  def agencies(self):
-    return self.parents
+  def operators(self):
+    return set(self.parents) # copy
+
+  def operator(self, onestopId):
+    """Return a single operator by Onestop ID."""
+    return mzgtfs.util.filtfirst(self.operators(), onestop=onestopId)
 
   def stops(self):
-    return self.children  
+    return set(self.children) # copy
+
+  def stop(self, onestopId):
+    """Return a single stop by Onestop ID."""
+    return mzgtfs.util.filtfirst(self.stops(), onestop=onestopId)
+
 
 class OnestopStop(OnestopEntity):
   onestop_type = 's'
@@ -420,12 +453,16 @@ class OnestopStop(OnestopEntity):
       'name': self.name(),
       'tags': self.tags(),
       'identifiers': self.identifiers,
-      'servedBy': [i.onestop() for i in self.agencies()],
+      'servedBy': [i.onestop() for i in self.operators()],
     }
 
   # Graph
-  def agencies(self):
+  def operators(self):
     agencies = set()
     for i in self.parents:
       agencies |= i.parents
     return agencies
+
+  def operator(self, onestopId):
+    """Return a single operator by Onestop ID."""
+    return mzgtfs.util.filtfirst(self.operators(), onestop=onestopId)
