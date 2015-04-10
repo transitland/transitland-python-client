@@ -5,13 +5,17 @@ import json
 import hashlib
 
 def download(url, filename, sha1=None, cache=True):
+  if not url:
+    raise ValueError("No url given.")
+  if not filename:
+    raise ValueError("No local output filename given.")  
   if cache and os.path.exists(filename):
     if sha1 and sha1file(filename) == sha1:
       # Cached file, valid sha1 hash
       print "Cached: %s (valid sha1)"%(filename)
       return filename
     elif sha1:
-      print "Cached, but incorrect signature."
+      print "Cached: %s (incorrect sha1)"%(filename)
     else:
       # Cached file, no sha1
       print "Cached: %s (sha1 not checked)"%(filename)
