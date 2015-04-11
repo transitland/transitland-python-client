@@ -14,12 +14,6 @@ def geohash_features(features):
 def centroid_points(points):
   """Return the lon,lat centroid for features."""
   # Todo: Geographic center, or simple average?
-  import ogr, osr
-  multipoint = ogr.Geometry(ogr.wkbMultiPoint)
-  # spatialReference = osr.SpatialReference() ...
-  for point in points:
-    p = ogr.Geometry(ogr.wkbPoint)
-    p.AddPoint(point[1], point[0])
-    multipoint.AddGeometry(p)
-  point = multipoint.Centroid()
-  return (point.GetY(), point.GetX())
+  x = sum(i[0] for i in points)
+  y = sum(i[1] for i in points)
+  return x/len(points), y/len(points)
