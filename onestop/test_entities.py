@@ -1,4 +1,4 @@
-"""Entity tests."""
+"""Entity unit tests."""
 import os
 import unittest
 import sys
