@@ -248,12 +248,12 @@ class TestOnestopFeed(unittest.TestCase):
     assert entity.feedFormat() == self.expect['feedFormat']    
   
   # Test fetching...
-  def test_fetch(self):
+  def test_download(self):
     # TODO: feed doesn't have url...
     entity = example_onestopfeed()
     f = tempfile.NamedTemporaryFile()
     with self.assertRaises(ValueError):
-      entity.fetch(f.name)
+      entity.download(f.name)
   
   # Load / dump
   def test_from_gtfs(self):

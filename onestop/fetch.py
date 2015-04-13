@@ -1,4 +1,4 @@
-"""Fetch Onestop """
+"""Fetch Onestop feeds."""
 import onestop
 import argparse
 
@@ -9,6 +9,7 @@ def run():
   parser.add_argument('feedids', nargs='*', help='Onestop Feed IDs')
   parser.add_argument('--onestop', help='Onestop Registry path', default='.')
   parser.add_argument('--all', help='Update all feeds', action='store_true')
+  parser.add_argument('--verbose', help='Verbosity', type=int, default=1)
   args = parser.parse_args()
 
   # Onestop Registry
@@ -16,10 +17,12 @@ def run():
   feedids = args.feedids
   if args.all:
     feedids = r.feeds()
+  if len(feedids) == 0:
+    raise Exception("No feeds specified! Try --all")
   for feedid in feedids:
     feed = r.feed(feedid)
     filename = '%s.zip'%feedid
-    feed.fetch(filename)
+    feed.download(filename, debug=args.verbose)
     
 if __name__ == "__main__":
   run()

@@ -207,9 +207,9 @@ class OnestopFeed(OnestopEntity):
     return self.data.get('feedFormat', 'gtfs')
 
   # Download the latest feed.
-  def fetch(self, filename):
+  def download(self, filename, debug=False):
     """Download the GTFS feed to a file."""
-    util.download(self.url(), filename, sha1=self.sha1())
+    util.download(self.url(), filename, sha1=self.sha1(), debug=debug)
 
   # Load / dump
   @classmethod
