@@ -40,7 +40,7 @@ Then, create a registry reader with onestop.registry.OnestopRegistry, passing th
 
 ## Working with a Onestop Feed
 
-A specific feed can be loaded with OnestopRegistry.feeds(). The resulting OnestopFeed can be used to inspect the feed attributes, download the current version of the feed, etc.
+A specific feed can be loaded with OnestopRegistry.feed(). The resulting OnestopFeed can be used to inspect the feed attributes, download the current version of the feed, etc.
 
 ```
 >>> import onestop.registry
