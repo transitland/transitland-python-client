@@ -4,7 +4,13 @@ import os
 import json
 import hashlib
 
-def download(url, filename, sha1=None, cache=True):
+def printf(msg):
+  print msg
+
+def download(url, filename, sha1=None, cache=True, debug=False):
+  p = lambda x:x  
+  if debug:
+    p = printf
   if not url:
     raise ValueError("No url given.")
   if not filename:
@@ -12,15 +18,15 @@ def download(url, filename, sha1=None, cache=True):
   if cache and os.path.exists(filename):
     if sha1 and sha1file(filename) == sha1:
       # Cached file, valid sha1 hash
-      print "Cached: %s (valid sha1)"%(filename)
+      p("Cached: %s (valid sha1)"%(filename))
       return filename
     elif sha1:
-      print "Cached: %s (incorrect sha1)"%(filename)
-    else:
+      p("Cached: %s (incorrect sha1)"%(filename))
+    elif sha1 is False:
       # Cached file, no sha1
-      print "Cached: %s (sha1 not checked)"%(filename)
+      p("Cached: %s (sha1 not checked)"%(filename))
       return filename
-  print "Downloading: %s -> %s"%(url, filename)
+  p("Downloading: %s -> %s"%(url, filename))
   urllib.urlretrieve(url, filename)
   return filename
 
