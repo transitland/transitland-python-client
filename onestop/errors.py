@@ -5,3 +5,6 @@ class OnestopExistingIdentifier(KeyError):
 
 class OnestopNoPoints(ValueError):
   pass
+  
+class OnestopInvalidRegistry(ValueError):
+  pass

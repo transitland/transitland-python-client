@@ -7,13 +7,18 @@ import argparse
 import urllib
 
 import entities
+import errors
 
 class OnestopRegistry(object):
   """Onestop Registry."""
-  def __init__(self, path=None):
+  def __init__(self, path='.'):
     """Path to directory containing 'feeds', 'operators', etc."""
     # Path to registry
     self.path = path
+    if not os.path.exists(os.path.join(self.path, 'feeds')):
+      raise errors.OnestopInvalidRegistry(
+        'Invalid Onestop Registry directory: %s'%self.path
+      )
 
   def _registered(self, path, prefix):
     return [
