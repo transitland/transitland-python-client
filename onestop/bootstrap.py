@@ -22,7 +22,6 @@ if __name__ == "__main__":
   parser.add_argument('--feedname', help='Feed name, if generating from GTFS')
   parser.add_argument('--onestop', help='Onestop Registry path', default='.')
   parser.add_argument('--output', help='Output path (default: Onestop)')
-
   parser.add_argument(
     '--cache',
     help='Feed cache setting. Allowed: force, ignore, cache (default)',
@@ -49,10 +48,13 @@ if __name__ == "__main__":
   if args.all:
     feedids = r.feeds()
     
+  if feedids and (args.filename or args.url):
+    raise Exception("Cannot specify --filename or --url with Feed IDs")
+  if args.url:
+    feedids = ['%s-bootstrap'%args.feedname]
   if len(feedids) == 0:
     raise Exception("No feeds specified; try --all.")
-  if len(feedids) > 1 and (args.filename or args.url):
-    raise Exception("Cannot specify --filename or --url with multiple feeds.")
+
 
   for feedid in feedids:
     # Load from registry, then update.
@@ -60,7 +62,9 @@ if __name__ == "__main__":
     try:
       f = r.feed(feedid)
     except IOError, e:
-      print "Could not load feed:", feedid
+      print "Attempting to bootstrap feed from GTFS file..."
+      feed['name'] = args.feedname
+      feed['url'] = args.url
     else:
       feed['name'] = f.name()
       feed['url'] = f.url()
@@ -80,7 +84,7 @@ if __name__ == "__main__":
       
     # Download GTFS feed.
     filename = args.filename
-    url = args.url or feed.get('url')
+    url = feed.get('url')
     if args.filename:
       pass
     elif url:
@@ -88,7 +92,8 @@ if __name__ == "__main__":
         url, 
         os.path.join(args.output, 'data', '%s.zip'%feedid),
         sha1=sha1,
-        cache=cache
+        cache=cache,
+        debug=True
       )
     else:
       raise Exception("No filename or url provided.")
@@ -99,19 +104,19 @@ if __name__ == "__main__":
     feed = entities.OnestopFeed.from_gtfs(
       f, 
       debug=args.debug, 
-      name=feed.get('name') or args.feedname,
+      name=feed.get('name'),
       url=url,
       tags=feed.get('tags')
     )
-
+    # If bootstrapping, update the feedid to include the geohash.
     # Print basic feed information.
-    print "Feed:", feedid
+    print "Feed:", feed.onestop()
     print "  Operators:", len(feed.operators())
     print "  Routes:", len(feed.routes())
     print "  Stops:", len(feed.stops())
 
     # Write out updated feed.
-    outfile = os.path.join(args.output, 'feeds', '%s.json'%feedid)
+    outfile = os.path.join(args.output, 'feeds', '%s.json'%feed.onestop())
     # do this so file isn't emptied if there's an exception...
     data = feed.json() 
     with open(outfile, 'w') as f:
