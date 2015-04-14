@@ -184,6 +184,12 @@ class TestOnestopFeed(unittest.TestCase):
     entity = example_onestopfeed()
     assert entity.onestop() == self.expect['onestopId']
 
+  def test_onestop_maxlen(self):
+    entity = example_onestopfeed()
+    entity.data['name'] = 'maximumlength' * 10
+    assert len(entity.data['name']) > entities.ONESTOP_LENGTH
+    assert len(entity.onestop()) <= entities.ONESTOP_LENGTH
+
   # Other Entity base methods that only make sense to test here...
   def test_json(self):
     # Check result looks like self.expect.

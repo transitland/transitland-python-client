@@ -12,6 +12,8 @@ import mzgtfs.feed
 import mzgtfs.util
 import mzgeohash
 
+ONESTOP_LENGTH = 64
+
 # Regexes
 REPLACE_CHAR = [
   # replace &, @, and / with ~
@@ -79,14 +81,15 @@ class OnestopEntity(object):
     """Return the OnestopID for this entity."""
     # Cache...
     if cache and 'onestopId' in self.data:
-      return self.data.get('onestopId')
+      return self.data.get('onestopId')[:ONESTOP_LENGTH]
     # Create if necessary.
     self.data['onestopId'] = '%s-%s-%s'%(
       self.onestop_type, 
       self.geohash(), 
       self.mangle(self.name())
-    )
-    return self.data['onestopId']
+    ) 
+    # Check maximum length.
+    return self.data['onestopId'][:ONESTOP_LENGTH]
 
   def mangle(self, s):
     """Mangle a string into an Onestop component."""
