@@ -33,15 +33,15 @@ Then, create a registry reader with onestop.registry.OnestopRegistry, passing th
 
 ```
 >>> import onestop.registry
->>> r = onestop.registry.OnestopRegistry('.')
+>>> registry = onestop.registry.OnestopRegistry('.')
 ```
 
 You can now list the known feeds and operators:
 
 ```
->>> r.feeds()
+>>> registry.feeds()
 ['f-9q5-lacmta', 'f-9q8-samtrans', 'f-9q8y-sanfranciscomunicipaltransportationagency', 'f-9q9-actransit', 'f-9q9-caltrain', 'f-9q9-vta', 'f-9vk-mtaharriscounty', 'f-c20-trimet', 'f-c23-kingcounty', 'f-c28-translink', 'f-dhw-miamidade', 'f-dnh-marta', 'f-dp3-cta', 'f-dpz8-ttc', 'f-dq-mtamaryland', 'f-dqc-wmata', 'f-dr5r-nyctsubway', 'f-dr5r-panynjpath', 'f-drt-mbta']
->>> r.operators()
+>>> registry.operators()
 ['o-9q5-metrolosangeles', 'o-9q8-samtrans', 'o-9q8y-sanfranciscomunicipaltransportationagency', 'o-9q9-actransit', 'o-9q9-bayarearapidtransit', 'o-9q9-caltrain', 'o-9q9-vta', 'o-9vk-metropolitantransitauthorityofharriscounty', 'o-c20-trimet', 'o-c22y-kingcountymarinedivison', 'o-c23-metrotransit', 'o-c23n-soundtransit', 'o-c23nb-cityofseattle', 'o-c28-translink', 'o-c2b-westcoastexpress', 'o-c2b8-britishcolumbiarapidtransitcompany', 'o-dhw-miamidadetransit', 'o-dnh-metropolitanatlantarapidtransitauthority', 'o-dp3-chicagotransitauthority', 'o-dpz8-ttc', 'o-dq-mtaofficeoflocaltransitsupport', 'o-dqc-marylandtransitadministration', 'o-dqc-met', 'o-dqcjr-dccirculator', 'o-dr5r-mtanewyorkcitytransit', 'o-dr5r-portauthoritytranshudsoncorporation', 'o-drt-mbta', 'o-drt3p-massport']
 ```
 
@@ -50,7 +50,7 @@ You can now list the known feeds and operators:
 A specific feed can be read with OnestopRegistry.feed(). The resulting OnestopFeed can be used to inspect the feed attributes, download the current version of the feed, etc.
 
 ```
->>> feed = r.feed('f-9q9-caltrain')
+>>> feed = registry.feed('f-9q9-caltrain')
 >>> feed.operatorsInFeed()
 'o-9q9-caltrain'
 >>> feed.url()
@@ -63,7 +63,7 @@ A specific feed can be read with OnestopRegistry.feed(). The resulting OnestopFe
 Each feed contains data for one or more operators, which can be read using OnestopRegistry.operator(). The resulting OnestopOperator then provides the associated routes, stops, and references to other databases.
 
 ```
->>> operator = r.operator('o-9q9-caltrain')
+>>> operator = registry.operator('o-9q9-caltrain')
 >>> len(operator.stops())
 64
 >>> [(stop.onestop(), stop.point()) for stop in operator.stops()][:5]
