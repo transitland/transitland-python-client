@@ -195,7 +195,6 @@ class OnestopEntity(object):
     """Add a parent relationship."""
     self.pclink(parent, self)  
 
-
 class OnestopFeed(OnestopEntity):
   """Read and write Onestop Feeds."""
   onestop_type = 'f'
@@ -250,6 +249,7 @@ class OnestopFeed(OnestopEntity):
     return [i.onestop() for i in self.operators()]
 
   def operators(self):
+    # TODO: Load from registry...
     return set(self.children) # copy
   
   def operator(self, onestopId):

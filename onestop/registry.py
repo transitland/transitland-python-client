@@ -31,12 +31,17 @@ class OnestopRegistry(object):
   def feeds(self):
     return self._registered('feeds', 'f')
           
-  def feed(self, onestopId):
+  def feed(self, onestopId, operators=False):
     """Load a feed by onestopId."""
     filename = os.path.join(self.path, 'feeds', '%s.json'%onestopId)
     with open(filename) as f:
       data = json.load(f)    
-    return entities.OnestopFeed.from_json(data)
+    feed = entities.OnestopFeed.from_json(data)
+    if operators:
+      for i in data['operatorsInFeed']:
+        operator = self.operator(i['onestopId'])
+        feed.add_child(operator)
+    return feed
 
   def operators(self):
     return self._registered('operators', 'o')
