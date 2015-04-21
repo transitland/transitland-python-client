@@ -54,6 +54,9 @@ REPLACE_ABBR = [
 ]
 REPLACE_ABBR = [[re.compile(r'\b%s\b'%i), ''] for i in REPLACE_ABBR]
 
+def sorted_onestop(entities):
+  return sorted(entities, key=lambda x:x.onestop())
+
 ##### Entities #####
 
 class OnestopEntity(object):
@@ -63,7 +66,6 @@ class OnestopEntity(object):
 
   def __init__(self, **data):
     """Set name, OnestopID, and geometry."""
-    self.identifiers = data.pop('identifiers', [])
     self.data = data
     self.parents = set()
     self.children = set()
@@ -77,19 +79,15 @@ class OnestopEntity(object):
     """Alias to onestop()"""
     return self.onestop()
 
-  def onestop(self, cache=True):
+  def onestop(self):
     """Return the OnestopID for this entity."""
-    # Cache...
-    if cache and 'onestopId' in self.data:
-      return self.data.get('onestopId')[:ONESTOP_LENGTH]
-    # Create if necessary.
-    self.data['onestopId'] = '%s-%s-%s'%(
+    # Check maximum length.
+    onestop = '%s-%s-%s'%(
       self.onestop_type, 
       self.geohash(), 
       self.mangle(self.name())
-    ) 
-    # Check maximum length.
-    return self.data['onestopId'][:ONESTOP_LENGTH]
+    )
+    return onestop[:ONESTOP_LENGTH]
 
   def mangle(self, s):
     """Mangle a string into an Onestop component."""
@@ -99,11 +97,8 @@ class OnestopEntity(object):
     return s    
 
   # Entity geometry.
-  def geohash(self, cache=True):
+  def geohash(self):
     """Return the geohash for this entity."""
-    # Cache...
-    if cache and 'geohash' in self.data:
-      return self.data.get('geohash')
     raise NotImplementedError
 
   def geometry(self):
@@ -137,7 +132,7 @@ class OnestopEntity(object):
     """Return a GeoJSON representation for the Transitland Datastore."""
     # Todo: Longer discussion on formats...
     data = self.json()
-    skip = ['identifiers', 'features']
+    skip = ['features', 'identifiers']
     if not rels:
       skip += [
         'serves', 
@@ -148,36 +143,48 @@ class OnestopEntity(object):
       ]
     for key in skip:
       data.pop(key, None)
-    # Merge identifiers.
-    data['tags'] = self.merge_identifiers()
     return data
 
   # Tags and identifiers
   def tags(self):
     return self.data.get('tags') or {}
 
-  def add_identifier(self, identifier, tags):
+  def identifiers(self):
+    return self.data.get('identifiers') or []
+
+  def add_tags(self, tags):
+    if 'tags' not in self.data:
+      self.data['tags'] = {}
+    # self.data['tags'].update(tags)
+
+  def add_identifier(self, identifier):
     """Add GTFS data to the set of identifiers."""
-    if identifier in [i['identifier'] for i in self.identifiers]:
+    if 'identifiers' not in self.data:
+      self.data['identifiers'] = []
+    if identifier in self.data['identifiers']:
       raise errors.OnestopExistingIdentifier(
         "Identifier already present: %s"%identifier
       )
-    self.identifiers.append({
-      'identifier': identifier,
-      'tags': tags
-    })
+    self.data['identifiers'].append(identifier)
   
   # Rename
-  def merge(self, item):
+  def merge(self, item, ignore_existing=True):
     """Merge data into identifiers."""
-    for i in item.identifiers:
-      self.add_identifier(identifier=i['identifier'], tags=i['tags'])
-
-  def merge_identifiers(self):
-    tags = {}
-    for i in sorted(self.identifiers, key=lambda x:x['identifier']):
-      tags.update(i['tags'])
-    return tags
+    for identifier in item.identifiers():
+      try:
+        self.add_identifier(identifier)
+      except errors.OnestopExistingIdentifier, e:
+        if ignore_existing:
+          pass
+        else:
+          raise
+    # merge relations
+    relkeys = ['serves', 'servedBy', 'operatedBy', 'operatorsInFeed']
+    for relkey in relkeys:
+      if (relkey in self.data) or (relkey in item.data):
+        a = set(self.data.get(relkey, []))
+        b = set(item.data.get(relkey, []))
+        self.data[relkey] = sorted(a | b)
 
   # Graph.
   def pclink(self, parent, child):
@@ -194,11 +201,13 @@ class OnestopEntity(object):
   def add_parent(self, parent):
     """Add a parent relationship."""
     self.pclink(parent, self)  
+    
 
 class OnestopFeed(OnestopEntity):
   """Read and write Onestop Feeds."""
   onestop_type = 'f'
 
+  # OnestopFeed methods.
   def url(self):
     return self.data.get('url')
   
@@ -207,7 +216,7 @@ class OnestopFeed(OnestopEntity):
     
   def feedFormat(self):
     return self.data.get('feedFormat', 'gtfs')
-
+  
   # Download the latest feed.
   def download(self, filename, debug=False):
     """Download the GTFS feed to a file."""
@@ -235,21 +244,19 @@ class OnestopFeed(OnestopEntity):
       "sha1": self.sha1(),
       "feedFormat": self.feedFormat(),
       "tags": self.tags(),
-      "operatorsInFeed": [
-        {
-          'onestopId': i.onestop(),
-          'gtfsAgencyId': i.mangle(i.name())
-        }
-        for i in self.operators()
-      ]
+      "operatorsInFeed": sorted(self.operatorsInFeed())
     }
-
+  
+  def geohash(self):
+    return geom.geohash_features(self.stops())
+  
   # Graph
   def operatorsInFeed(self):
-    return [i.onestop() for i in self.operators()]
+    ret = set([i.onestop() for i in self.operators()])
+    ret |= set(self.data.get('operatorsInFeed', []))
+    return ret
 
   def operators(self):
-    # TODO: Load from registry...
     return set(self.children) # copy
   
   def operator(self, onestopId):
@@ -292,10 +299,8 @@ class OnestopOperator(OnestopEntity):
       name=gtfs_agency.name(),
       geometry=gtfs_agency.geometry()
     )
-    agency.add_identifier(
-      gtfs_agency.feedid(feedid), 
-      gtfs_agency.data._asdict()
-    )
+    agency.add_identifier(gtfs_agency.feedid(feedid))
+    agency.add_tags(gtfs_agency.data._asdict())
     # Group stops
     stops = {}
     for i in gtfs_agency.stops():
@@ -308,7 +313,8 @@ class OnestopOperator(OnestopEntity):
         stops[key] = stop
       # Hack to maintain ref to stop
       i._onestop_parent = stops[key]
-      stops[key].add_identifier(i.feedid(feedid), i.data._asdict())
+      stops[key].add_identifier(i.feedid(feedid))
+      stops[key].add_tags(i.data._asdict())
     # Routes
     routes = {}
     for i in gtfs_agency.routes():
@@ -333,7 +339,8 @@ class OnestopOperator(OnestopEntity):
         print "set key to:", key
         assert key not in routes
       route.pclink(agency, route)
-      route.add_identifier(i.feedid(feedid), i.data._asdict())
+      route.add_identifier(i.feedid(feedid))
+      route.add_tags(i.data._asdict())
       routes[key] = route
     # Return agency
     return agency
@@ -365,15 +372,22 @@ class OnestopOperator(OnestopEntity):
       'properties': {},
       'name': self.name(),
       'tags': self.tags(),
-      'identifiers': self.identifiers,
       'onestopId': self.onestop(),
-      'serves': [i.onestop() for i in self.stops()],
-      'features': [i.json() for i in self.routes() | self.stops()]
+      'identifiers': sorted(self.identifiers()),
+      'serves': sorted(self.serves()),
+      'features': [
+        i.json() for i in sorted_onestop(self.routes() | self.stops())
+      ]
     }
 
   # Graph
+  def serves(self):
+    ret = set([i.onestop() for i in self.stops()])
+    ret |= set(self.data.get('serves', []))
+    return ret
+    
   def routes(self):
-    return self.children
+    return set(self.children)
 
   def route(self, onestopId):
     """Return a single route by Onestop ID."""
@@ -405,12 +419,23 @@ class OnestopRoute(OnestopEntity):
       'onestopId': self.onestop(),
       'name': self.name(),
       'tags': self.tags(),
-      'identifiers': self.identifiers,
-      'operatedBy': [i.onestop() for i in self.operators()][0],
-      'serves': [i.onestop() for i in self.stops()],
+      'operatedBy': self.operatedBy(),
+      'identifiers': sorted(self.identifiers()),
+      'serves': sorted(self.serves()),
     }
-  
+
   # Graph
+  def serves(self):
+    ret = set([i.onestop() for i in self.stops()])
+    ret |= set(self.data.get('serves', []))
+    return ret
+
+  def operatedBy(self):
+    """Return the first operator."""
+    ret = set(i.onestop() for i in self.operators())
+    ret |= set(self.data.get('operatedBy', []))
+    return sorted(ret)[0]
+  
   def operators(self):
     return set(self.parents) # copy
 
@@ -455,11 +480,17 @@ class OnestopStop(OnestopEntity):
       'onestopId': self.onestop(),
       'name': self.name(),
       'tags': self.tags(),
-      'identifiers': self.identifiers,
-      'servedBy': [i.onestop() for i in self.operators()],
+      'identifiers': sorted(self.identifiers()),
+      'servedBy': sorted(self.servedBy()),
     }
 
   # Graph
+  def servedBy(self):
+    """Return the operators serving this stop."""
+    ret = set([i.onestop() for i in self.operators()])
+    ret |= set(self.data.get('servedBy', []))
+    return ret
+   
   def operators(self):
     agencies = set()
     for i in self.parents:
