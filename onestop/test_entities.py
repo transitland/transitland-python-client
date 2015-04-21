@@ -26,7 +26,7 @@ class TestOnestopEntity(unittest.TestCase):
     'name':'foobar',
     'foo':'bar',
     'rab':'oof',
-    'identifiers':[{'identifier':'f-a-b','tags':{'train':'rail'}}]
+    'identifiers':['f-a-b']
   }
     
   def test_init(self):
@@ -48,46 +48,32 @@ class TestOnestopEntity(unittest.TestCase):
     assert entity.name() == self.expect['name']
   
   def test_add_identifier(self):
-    data = {
-      'a-b-c': {'hello':'world'},
-      'd-e-f': {'foo':'bar'}
-    }
+    data = ['abc', 'def']
     entity = entities.OnestopEntity()
-    for k,v in data.items():
-      entity.add_identifier(k, v)
-    assert len(entity.identifiers) == 2
-    for i in entity.identifiers:
-      assert i['identifier'] in data
-      assert data[i['identifier']]
+    for k in data:
+      entity.add_identifier(k)
+    assert len(entity.identifiers()) == 2
+    for i in entity.identifiers():
+      assert i in data
     with self.assertRaises(errors.OnestopExistingIdentifier):
-      entity.add_identifier('a-b-c',{'test':'error'})
+      entity.add_identifier('abc')
 
   def test_merge(self):
-    data = {
-      'a-b-c': {'hello':'world'},
-      'd-e-f': {'foo':'bar'}
-    }
+    data = ['abc', 'def']
     entity1 = entities.OnestopEntity()
-    entity1.add_identifier('a-b-c', data['a-b-c'])
+    entity1.add_identifier('abc')
     entity2 = entities.OnestopEntity()
-    entity2.add_identifier('d-e-f', data['d-e-f'])
+    entity2.add_identifier('def')
     entity1.merge(entity2)
-    assert len(entity1.identifiers) == 2
-    for i in entity1.identifiers:
-      assert i['identifier'] in data
+    assert len(entity1.identifiers()) == 2
+    for i in entity1.identifiers():
+      assert i in data
 
   def test_merge_identifiers(self):
-    data = {
-      'a-b-c': {'hello':'world'},
-      'd-e-f': {'foo':'bar'}
-    }
+    data = ['abc', 'def']
     entity = entities.OnestopEntity()
-    for k,v in data.items():
-      entity.add_identifier(k,v)
-    tags = entity.merge_identifiers()
-    assert len(tags) == 2
-    assert tags['hello'] == 'world'
-    assert tags['foo'] == 'bar'
+    for k in data:
+      entity.add_identifier(k)
     
   # Graph stuff...
   def test_pclink(self):
@@ -198,9 +184,7 @@ class TestOnestopFeed(unittest.TestCase):
     for k in ('onestopId','name','url','sha1','feedFormat'):
       assert data[k] == self.expect[k]
     assert len(data['operatorsInFeed']) == 1
-    o = data['operatorsInFeed'][0]
-    assert o['gtfsAgencyId'] == 'demotransitauthority'
-    assert o['onestopId'] == 'o-9qs-demotransitauthority'
+    assert 'o-9qs-demotransitauthority' in data['operatorsInFeed']
   
   def test_from_json(self):
     # TODO: more thorough testing here...
@@ -288,7 +272,7 @@ class TestOnestopFeed(unittest.TestCase):
     entity = example_onestopfeed()
     o = entity.operatorsInFeed()
     assert len(o) == 1
-    assert o[0] == 'o-9qs-demotransitauthority'
+    assert 'o-9qs-demotransitauthority' in o
     
   def test_routes(self):
     entity = example_onestopfeed()
@@ -323,11 +307,7 @@ class TestOnestopOperator(unittest.TestCase):
                                    [-116.81797, 36.88108],
                                    [-117.133162, 36.425288]]],
                  'type': 'Polygon'},
-   'identifiers': [{'identifier': 'f-0-unknown-o-DTA',
-                     'tags': {'agency_id': 'DTA',
-                               'agency_name': 'Demo Transit Authority',
-                               'agency_timezone': 'America/Los_Angeles',
-                               'agency_url': 'http://google.com'}}],
+   'identifiers': ['f-0-unknown-o-DTA'],
    'name': 'Demo Transit Authority',
    'onestopId': 'o-9qs-demotransitauthority',
    'properties': {},
@@ -349,23 +329,19 @@ class TestOnestopOperator(unittest.TestCase):
     # More extensive checks, since json export includes nearly everything.
     assert entity.geohash() == '9qs'
     assert entity.onestop() == self.expect['onestopId']
-    assert len(entity.identifiers) == 1
-    i = entity.identifiers[0]
-    j = self.expect['identifiers'][0]
-    assert i['identifier'] == j['identifier']
-    assert i['tags']['agency_id'] == j['tags']['agency_id']
+    assert len(entity.identifiers()) == 1
     # Routes
     assert len(entity.routes()) == 5
     expect = ['r-9qsczp-40', 'r-9qt1-50', 
       'r-9qsb-20', 'r-9qscy-30', 'r-9qscy-10']
     for i in entity.routes():
       assert i.onestop() in expect
-      assert len(i.identifiers) == 1
+      assert len(i.identifiers()) == 1
     # Stops
     assert len(entity.stops()) == 9
     for i in entity.stops():
       assert i.onestop() in self.expect['serves']
-      assert len(i.identifiers) == 1    
+      assert len(i.identifiers()) == 1    
 
   def test_init(self):
     entity = entities.OnestopOperator()
@@ -429,16 +405,7 @@ class TestOnestopRoute(unittest.TestCase):
                                    [-116.761472, 36.914944],
                                    [-116.751677, 36.915682]]],
                  'type': 'MultiLineString'},
-   'identifiers': [{'identifier': 'f-0-unknown-r-CITY',
-                     'tags': {'agency_id': 'DTA',
-                               'route_color': '',
-                               'route_desc': '',
-                               'route_id': 'CITY',
-                               'route_long_name': 'City',
-                               'route_short_name': '40',
-                               'route_text_color': '',
-                               'route_type': '3',
-                               'route_url': ''}}],
+   'identifiers': ['f-0-unknown-r-CITY'],
    'name': '40',
    'onestopId': 'r-9qsczp-40',
    'operatedBy': 'o-9qs-demotransitauthority',
@@ -470,7 +437,7 @@ class TestOnestopRoute(unittest.TestCase):
     assert data['geometry']['coordinates']
     assert len(data['serves']) == 5
     assert len(data['identifiers']) == 1
-    assert data['identifiers'][0]['identifier'] == 'f-0-unknown-r-CITY'
+    # assert data['identifiers'][0]['identifier'] == 'f-0-unknown-r-CITY'
   
   def test_operators(self):
     entity = example_onestopfeed().route(self.expect['onestopId'])
@@ -495,14 +462,7 @@ class TestOnestopRoute(unittest.TestCase):
 class TestOnestopStop(unittest.TestCase):
   expect = {
     'geometry': {'coordinates': [-116.76821, 36.914893], 'type': 'Point'},
-    'identifiers': [{'identifier': 'f-0-unknown-s-NADAV',
-                   'tags': {'stop_desc': '',
-                             'stop_id': 'NADAV',
-                             'stop_lat': '36.914893',
-                             'stop_lon': '-116.76821',
-                             'stop_name': 'North Ave / D Ave N (Demo)',
-                             'stop_url': '',
-                             'zone_id': ''}}],
+    'identifiers': ['f-0-unknown-s-NADAV'],
     'name': 'North Ave / D Ave N (Demo)',
     'onestopId': 's-9qsfnb5uz6-north~dndemo',
     'properties': {},
@@ -550,7 +510,7 @@ class TestOnestopStop(unittest.TestCase):
     assert data['geometry']['type'] == 'Point'
     assert data['geometry']['coordinates']
     assert len(data['identifiers']) == 1
-    assert data['identifiers'][0]['identifier'] == 'f-0-unknown-s-NADAV'
+    # assert data['identifiers'][0]['identifier'] == 'f-0-unknown-s-NADAV'
   
   def test_operators(self):
     entity = example_onestopfeed().stop(self.expect['onestopId'])
