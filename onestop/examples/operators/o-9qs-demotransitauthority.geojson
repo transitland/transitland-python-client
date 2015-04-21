@@ -5,77 +5,37 @@
                 "coordinates": [
                     [
                         [
-                            -116.751677,
-                            36.915682
+                            -116.81797,
+                            36.88108
                         ],
                         [
-                            -116.761472,
-                            36.914944
-                        ],
-                        [
-                            -116.76821,
-                            36.914893
-                        ],
-                        [
-                            -116.768242,
-                            36.909489
-                        ],
-                        [
-                            -116.76218,
-                            36.905697
+                            -117.133162,
+                            36.425288
                         ]
                     ],
                     [
                         [
-                            -116.76218,
-                            36.905697
+                            -117.133162,
+                            36.425288
                         ],
                         [
-                            -116.768242,
-                            36.909489
-                        ],
-                        [
-                            -116.76821,
-                            36.914893
-                        ],
-                        [
-                            -116.761472,
-                            36.914944
-                        ],
-                        [
-                            -116.751677,
-                            36.915682
+                            -116.81797,
+                            36.88108
                         ]
                     ]
                 ],
                 "type": "MultiLineString"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-r-CITY",
-                    "tags": {
-                        "agency_id": "DTA",
-                        "route_color": "",
-                        "route_desc": "",
-                        "route_id": "CITY",
-                        "route_long_name": "City",
-                        "route_short_name": "40",
-                        "route_text_color": "",
-                        "route_type": "3",
-                        "route_url": ""
-                    }
-                }
+                "f-9qs-dta-r-BFC"
             ],
-            "name": "40",
-            "onestopId": "r-9qsczp-40",
+            "name": "20",
+            "onestopId": "r-9qsb-20",
             "operatedBy": "o-9qs-demotransitauthority",
             "properties": {},
             "serves": [
-                "s-9qsfnb5uz6-north~dndemo",
-                "s-9qsczn2rk0-emain~sirvingdemo",
-                "s-9qsfp00vhs-north~nademo",
-                "s-9qscyz5vqg-doing~dndemo",
-                "s-9qsfp2212t-stagecoachhotel~casinodemo"
+                "s-9qkxnx40xt-furnacecreekresortdemo",
+                "s-9qscv9zzb5-bullfrogdemo"
             ],
             "tags": {},
             "type": "Feature"
@@ -83,92 +43,39 @@
         {
             "geometry": {
                 "coordinates": [
-                    -116.751677,
-                    36.915682
+                    [
+                        [
+                            -116.784582,
+                            36.868446
+                        ],
+                        [
+                            -116.81797,
+                            36.88108
+                        ]
+                    ],
+                    [
+                        [
+                            -116.81797,
+                            36.88108
+                        ],
+                        [
+                            -116.784582,
+                            36.868446
+                        ]
+                    ]
                 ],
-                "type": "Point"
+                "type": "MultiLineString"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-s-STAGECOACH",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "STAGECOACH",
-                        "stop_lat": "36.915682",
-                        "stop_lon": "-116.751677",
-                        "stop_name": "Stagecoach Hotel & Casino (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
+                "f-9qs-dta-r-AB"
             ],
-            "name": "Stagecoach Hotel & Casino (Demo)",
-            "onestopId": "s-9qsfp2212t-stagecoachhotel~casinodemo",
+            "name": "10",
+            "onestopId": "r-9qscy-10",
+            "operatedBy": "o-9qs-demotransitauthority",
             "properties": {},
-            "servedBy": [
-                "o-9qs-demotransitauthority"
-            ],
-            "tags": {},
-            "type": "Feature"
-        },
-        {
-            "geometry": {
-                "coordinates": [
-                    -116.784582,
-                    36.868446
-                ],
-                "type": "Point"
-            },
-            "identifiers": [
-                {
-                    "identifier": "dta-s-BEATTY_AIRPORT",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "BEATTY_AIRPORT",
-                        "stop_lat": "36.868446",
-                        "stop_lon": "-116.784582",
-                        "stop_name": "Nye County Airport (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
-            ],
-            "name": "Nye County Airport (Demo)",
-            "onestopId": "s-9qscwx8n60-nyecountyairportdemo",
-            "properties": {},
-            "servedBy": [
-                "o-9qs-demotransitauthority"
-            ],
-            "tags": {},
-            "type": "Feature"
-        },
-        {
-            "geometry": {
-                "coordinates": [
-                    -116.761472,
-                    36.914944
-                ],
-                "type": "Point"
-            },
-            "identifiers": [
-                {
-                    "identifier": "dta-s-NANAA",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "NANAA",
-                        "stop_lat": "36.914944",
-                        "stop_lon": "-116.761472",
-                        "stop_name": "North Ave / N A Ave (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
-            ],
-            "name": "North Ave / N A Ave (Demo)",
-            "onestopId": "s-9qsfp00vhs-north~nademo",
-            "properties": {},
-            "servedBy": [
-                "o-9qs-demotransitauthority"
+            "serves": [
+                "s-9qscv9zzb5-bullfrogdemo",
+                "s-9qscwx8n60-nyecountyairportdemo"
             ],
             "tags": {},
             "type": "Feature"
@@ -191,20 +98,7 @@
                 "type": "MultiLineString"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-r-STBA",
-                    "tags": {
-                        "agency_id": "DTA",
-                        "route_color": "",
-                        "route_desc": "",
-                        "route_id": "STBA",
-                        "route_long_name": "Stagecoach - Airport Shuttle",
-                        "route_short_name": "30",
-                        "route_text_color": "",
-                        "route_type": "3",
-                        "route_url": ""
-                    }
-                }
+                "f-9qs-dta-r-STBA"
             ],
             "name": "30",
             "onestopId": "r-9qscy-30",
@@ -220,30 +114,66 @@
         {
             "geometry": {
                 "coordinates": [
-                    -116.40094,
-                    36.641496
+                    [
+                        [
+                            -116.751677,
+                            36.915682
+                        ],
+                        [
+                            -116.761472,
+                            36.914944
+                        ],
+                        [
+                            -116.76821,
+                            36.914893
+                        ],
+                        [
+                            -116.768242,
+                            36.909489
+                        ],
+                        [
+                            -116.76218,
+                            36.905697
+                        ]
+                    ],
+                    [
+                        [
+                            -116.76218,
+                            36.905697
+                        ],
+                        [
+                            -116.768242,
+                            36.909489
+                        ],
+                        [
+                            -116.76821,
+                            36.914893
+                        ],
+                        [
+                            -116.761472,
+                            36.914944
+                        ],
+                        [
+                            -116.751677,
+                            36.915682
+                        ]
+                    ]
                 ],
-                "type": "Point"
+                "type": "MultiLineString"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-s-AMV",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "AMV",
-                        "stop_lat": "36.641496",
-                        "stop_lon": "-116.40094",
-                        "stop_name": "Amargosa Valley (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
+                "f-9qs-dta-r-CITY"
             ],
-            "name": "Amargosa Valley (Demo)",
-            "onestopId": "s-9qt0rnrkjt-amargosavalleydemo",
+            "name": "40",
+            "onestopId": "r-9qsczp-40",
+            "operatedBy": "o-9qs-demotransitauthority",
             "properties": {},
-            "servedBy": [
-                "o-9qs-demotransitauthority"
+            "serves": [
+                "s-9qscyz5vqg-doing~dndemo",
+                "s-9qsczn2rk0-emain~sirvingdemo",
+                "s-9qsfnb5uz6-north~dndemo",
+                "s-9qsfp00vhs-north~nademo",
+                "s-9qsfp2212t-stagecoachhotel~casinodemo"
             ],
             "tags": {},
             "type": "Feature"
@@ -251,30 +181,39 @@
         {
             "geometry": {
                 "coordinates": [
-                    -116.76821,
-                    36.914893
+                    [
+                        [
+                            -116.784582,
+                            36.868446
+                        ],
+                        [
+                            -116.40094,
+                            36.641496
+                        ]
+                    ],
+                    [
+                        [
+                            -116.40094,
+                            36.641496
+                        ],
+                        [
+                            -116.784582,
+                            36.868446
+                        ]
+                    ]
                 ],
-                "type": "Point"
+                "type": "MultiLineString"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-s-NADAV",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "NADAV",
-                        "stop_lat": "36.914893",
-                        "stop_lon": "-116.76821",
-                        "stop_name": "North Ave / D Ave N (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
+                "f-9qs-dta-r-AAMV"
             ],
-            "name": "North Ave / D Ave N (Demo)",
-            "onestopId": "s-9qsfnb5uz6-north~dndemo",
+            "name": "50",
+            "onestopId": "r-9qt1-50",
+            "operatedBy": "o-9qs-demotransitauthority",
             "properties": {},
-            "servedBy": [
-                "o-9qs-demotransitauthority"
+            "serves": [
+                "s-9qscwx8n60-nyecountyairportdemo",
+                "s-9qt0rnrkjt-amargosavalleydemo"
             ],
             "tags": {},
             "type": "Feature"
@@ -288,21 +227,70 @@
                 "type": "Point"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-s-FUR_CREEK_RES",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "FUR_CREEK_RES",
-                        "stop_lat": "36.425288",
-                        "stop_lon": "-117.133162",
-                        "stop_name": "Furnace Creek Resort (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
+                "f-9qs-dta-s-FUR_CREEK_RES"
             ],
             "name": "Furnace Creek Resort (Demo)",
             "onestopId": "s-9qkxnx40xt-furnacecreekresortdemo",
+            "properties": {},
+            "servedBy": [
+                "o-9qs-demotransitauthority"
+            ],
+            "tags": {},
+            "type": "Feature"
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -116.81797,
+                    36.88108
+                ],
+                "type": "Point"
+            },
+            "identifiers": [
+                "f-9qs-dta-s-BULLFROG"
+            ],
+            "name": "Bullfrog (Demo)",
+            "onestopId": "s-9qscv9zzb5-bullfrogdemo",
+            "properties": {},
+            "servedBy": [
+                "o-9qs-demotransitauthority"
+            ],
+            "tags": {},
+            "type": "Feature"
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -116.784582,
+                    36.868446
+                ],
+                "type": "Point"
+            },
+            "identifiers": [
+                "f-9qs-dta-s-BEATTY_AIRPORT"
+            ],
+            "name": "Nye County Airport (Demo)",
+            "onestopId": "s-9qscwx8n60-nyecountyairportdemo",
+            "properties": {},
+            "servedBy": [
+                "o-9qs-demotransitauthority"
+            ],
+            "tags": {},
+            "type": "Feature"
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -116.768242,
+                    36.909489
+                ],
+                "type": "Point"
+            },
+            "identifiers": [
+                "f-9qs-dta-s-DADAN"
+            ],
+            "name": "Doing Ave / D Ave N (Demo)",
+            "onestopId": "s-9qscyz5vqg-doing~dndemo",
             "properties": {},
             "servedBy": [
                 "o-9qs-demotransitauthority"
@@ -319,18 +307,7 @@
                 "type": "Point"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-s-EMSI",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "EMSI",
-                        "stop_lat": "36.905697",
-                        "stop_lon": "-116.76218",
-                        "stop_name": "E Main St / S Irving St (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
+                "f-9qs-dta-s-EMSI"
             ],
             "name": "E Main St / S Irving St (Demo)",
             "onestopId": "s-9qsczn2rk0-emain~sirvingdemo",
@@ -344,80 +321,16 @@
         {
             "geometry": {
                 "coordinates": [
-                    [
-                        [
-                            -116.784582,
-                            36.868446
-                        ],
-                        [
-                            -116.81797,
-                            36.88108
-                        ]
-                    ],
-                    [
-                        [
-                            -116.81797,
-                            36.88108
-                        ],
-                        [
-                            -116.784582,
-                            36.868446
-                        ]
-                    ]
-                ],
-                "type": "MultiLineString"
-            },
-            "identifiers": [
-                {
-                    "identifier": "dta-r-AB",
-                    "tags": {
-                        "agency_id": "DTA",
-                        "route_color": "",
-                        "route_desc": "",
-                        "route_id": "AB",
-                        "route_long_name": "Airport - Bullfrog",
-                        "route_short_name": "10",
-                        "route_text_color": "",
-                        "route_type": "3",
-                        "route_url": ""
-                    }
-                }
-            ],
-            "name": "10",
-            "onestopId": "r-9qscy-10",
-            "operatedBy": "o-9qs-demotransitauthority",
-            "properties": {},
-            "serves": [
-                "s-9qscwx8n60-nyecountyairportdemo",
-                "s-9qscv9zzb5-bullfrogdemo"
-            ],
-            "tags": {},
-            "type": "Feature"
-        },
-        {
-            "geometry": {
-                "coordinates": [
-                    -116.768242,
-                    36.909489
+                    -116.76821,
+                    36.914893
                 ],
                 "type": "Point"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-s-DADAN",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "DADAN",
-                        "stop_lat": "36.909489",
-                        "stop_lon": "-116.768242",
-                        "stop_name": "Doing Ave / D Ave N (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
+                "f-9qs-dta-s-NADAV"
             ],
-            "name": "Doing Ave / D Ave N (Demo)",
-            "onestopId": "s-9qscyz5vqg-doing~dndemo",
+            "name": "North Ave / D Ave N (Demo)",
+            "onestopId": "s-9qsfnb5uz6-north~dndemo",
             "properties": {},
             "servedBy": [
                 "o-9qs-demotransitauthority"
@@ -428,133 +341,56 @@
         {
             "geometry": {
                 "coordinates": [
-                    [
-                        [
-                            -116.81797,
-                            36.88108
-                        ],
-                        [
-                            -117.133162,
-                            36.425288
-                        ]
-                    ],
-                    [
-                        [
-                            -117.133162,
-                            36.425288
-                        ],
-                        [
-                            -116.81797,
-                            36.88108
-                        ]
-                    ]
-                ],
-                "type": "MultiLineString"
-            },
-            "identifiers": [
-                {
-                    "identifier": "dta-r-BFC",
-                    "tags": {
-                        "agency_id": "DTA",
-                        "route_color": "",
-                        "route_desc": "",
-                        "route_id": "BFC",
-                        "route_long_name": "Bullfrog - Furnace Creek Resort",
-                        "route_short_name": "20",
-                        "route_text_color": "",
-                        "route_type": "3",
-                        "route_url": ""
-                    }
-                }
-            ],
-            "name": "20",
-            "onestopId": "r-9qsb-20",
-            "operatedBy": "o-9qs-demotransitauthority",
-            "properties": {},
-            "serves": [
-                "s-9qkxnx40xt-furnacecreekresortdemo",
-                "s-9qscv9zzb5-bullfrogdemo"
-            ],
-            "tags": {},
-            "type": "Feature"
-        },
-        {
-            "geometry": {
-                "coordinates": [
-                    [
-                        [
-                            -116.784582,
-                            36.868446
-                        ],
-                        [
-                            -116.40094,
-                            36.641496
-                        ]
-                    ],
-                    [
-                        [
-                            -116.40094,
-                            36.641496
-                        ],
-                        [
-                            -116.784582,
-                            36.868446
-                        ]
-                    ]
-                ],
-                "type": "MultiLineString"
-            },
-            "identifiers": [
-                {
-                    "identifier": "dta-r-AAMV",
-                    "tags": {
-                        "agency_id": "DTA",
-                        "route_color": "",
-                        "route_desc": "",
-                        "route_id": "AAMV",
-                        "route_long_name": "Airport - Amargosa Valley",
-                        "route_short_name": "50",
-                        "route_text_color": "",
-                        "route_type": "3",
-                        "route_url": ""
-                    }
-                }
-            ],
-            "name": "50",
-            "onestopId": "r-9qt1-50",
-            "operatedBy": "o-9qs-demotransitauthority",
-            "properties": {},
-            "serves": [
-                "s-9qscwx8n60-nyecountyairportdemo",
-                "s-9qt0rnrkjt-amargosavalleydemo"
-            ],
-            "tags": {},
-            "type": "Feature"
-        },
-        {
-            "geometry": {
-                "coordinates": [
-                    -116.81797,
-                    36.88108
+                    -116.761472,
+                    36.914944
                 ],
                 "type": "Point"
             },
             "identifiers": [
-                {
-                    "identifier": "dta-s-BULLFROG",
-                    "tags": {
-                        "stop_desc": "",
-                        "stop_id": "BULLFROG",
-                        "stop_lat": "36.88108",
-                        "stop_lon": "-116.81797",
-                        "stop_name": "Bullfrog (Demo)",
-                        "stop_url": "",
-                        "zone_id": ""
-                    }
-                }
+                "f-9qs-dta-s-NANAA"
             ],
-            "name": "Bullfrog (Demo)",
-            "onestopId": "s-9qscv9zzb5-bullfrogdemo",
+            "name": "North Ave / N A Ave (Demo)",
+            "onestopId": "s-9qsfp00vhs-north~nademo",
+            "properties": {},
+            "servedBy": [
+                "o-9qs-demotransitauthority"
+            ],
+            "tags": {},
+            "type": "Feature"
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -116.751677,
+                    36.915682
+                ],
+                "type": "Point"
+            },
+            "identifiers": [
+                "f-9qs-dta-s-STAGECOACH"
+            ],
+            "name": "Stagecoach Hotel & Casino (Demo)",
+            "onestopId": "s-9qsfp2212t-stagecoachhotel~casinodemo",
+            "properties": {},
+            "servedBy": [
+                "o-9qs-demotransitauthority"
+            ],
+            "tags": {},
+            "type": "Feature"
+        },
+        {
+            "geometry": {
+                "coordinates": [
+                    -116.40094,
+                    36.641496
+                ],
+                "type": "Point"
+            },
+            "identifiers": [
+                "f-9qs-dta-s-AMV"
+            ],
+            "name": "Amargosa Valley (Demo)",
+            "onestopId": "s-9qt0rnrkjt-amargosavalleydemo",
             "properties": {},
             "servedBy": [
                 "o-9qs-demotransitauthority"
@@ -595,29 +431,21 @@
         "type": "Polygon"
     },
     "identifiers": [
-        {
-            "identifier": "dta-o-DTA",
-            "tags": {
-                "agency_id": "DTA",
-                "agency_name": "Demo Transit Authority",
-                "agency_timezone": "America/Los_Angeles",
-                "agency_url": "http://google.com"
-            }
-        }
+        "f-9qs-dta-o-DTA"
     ],
     "name": "Demo Transit Authority",
     "onestopId": "o-9qs-demotransitauthority",
     "properties": {},
     "serves": [
-        "s-9qscwx8n60-nyecountyairportdemo",
-        "s-9qsfp2212t-stagecoachhotel~casinodemo",
         "s-9qkxnx40xt-furnacecreekresortdemo",
-        "s-9qsczn2rk0-emain~sirvingdemo",
         "s-9qscv9zzb5-bullfrogdemo",
+        "s-9qscwx8n60-nyecountyairportdemo",
         "s-9qscyz5vqg-doing~dndemo",
-        "s-9qt0rnrkjt-amargosavalleydemo",
+        "s-9qsczn2rk0-emain~sirvingdemo",
         "s-9qsfnb5uz6-north~dndemo",
-        "s-9qsfp00vhs-north~nademo"
+        "s-9qsfp00vhs-north~nademo",
+        "s-9qsfp2212t-stagecoachhotel~casinodemo",
+        "s-9qt0rnrkjt-amargosavalleydemo"
     ],
     "tags": {},
     "type": "FeatureCollection"
