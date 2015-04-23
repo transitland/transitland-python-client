@@ -13,7 +13,7 @@ import mzgtfs.util
 import mzgeohash
 
 ONESTOP_LENGTH = 64
-GEOHASH_LENGTH = 8
+GEOHASH_LENGTH = 10
 
 # Regexes
 REPLACE_CHAR = [

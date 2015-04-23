@@ -26,7 +26,7 @@ class TestOnestopEntity(unittest.TestCase):
     'name':'foobar',
     'foo':'bar',
     'rab':'oof',
-    'identifiers':['f-a-b']
+    'identifiers':['gtfs://test/s/ok']
   }
     
   def test_init(self):
@@ -307,7 +307,7 @@ class TestOnestopOperator(unittest.TestCase):
                                    [-116.81797, 36.88108],
                                    [-117.133162, 36.425288]]],
                  'type': 'Polygon'},
-   'identifiers': ['f-0-unknown-o-DTA'],
+   'identifiers': ['gtfs://unknown/o/DTA'],
    'name': 'Demo Transit Authority',
    'onestopId': 'o-9qs-demotransitauthority',
    'properties': {},
@@ -405,7 +405,7 @@ class TestOnestopRoute(unittest.TestCase):
                                    [-116.761472, 36.914944],
                                    [-116.751677, 36.915682]]],
                  'type': 'MultiLineString'},
-   'identifiers': ['f-0-unknown-r-CITY'],
+   'identifiers': ['gtfs://unknown/r/CITY'],
    'name': '40',
    'onestopId': 'r-9qsczp-40',
    'operatedBy': 'o-9qs-demotransitauthority',
@@ -456,13 +456,15 @@ class TestOnestopRoute(unittest.TestCase):
   
   def test_stop(self):
     entity = example_onestopfeed().route(self.expect['onestopId'])
+    print "test_stop:", self.expect['serves']
+    print [i.onestop() for i in entity.stops()]
     for i in self.expect['serves']:
       assert entity.stop(i)
     
 class TestOnestopStop(unittest.TestCase):
   expect = {
     'geometry': {'coordinates': [-116.76821, 36.914893], 'type': 'Point'},
-    'identifiers': ['f-0-unknown-s-NADAV'],
+    'identifiers': ['gtfs://unknown/s/NADAV'],
     'name': 'North Ave / D Ave N (Demo)',
     'onestopId': 's-9qsfnb5uz6-north~dndemo',
     'properties': {},
