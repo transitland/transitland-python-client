@@ -19,6 +19,7 @@ class StopBin(object):
       self._stops[key] = stop
     else:
       self._stops[key].merge(stop)
+    return self._stops[key]
 
   @classmethod
   def from_json(cls, data):
