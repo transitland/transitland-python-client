@@ -13,6 +13,7 @@ import mzgtfs.util
 import mzgeohash
 
 ONESTOP_LENGTH = 64
+GEOHASH_LENGTH = 8
 
 # Regexes
 REPLACE_CHAR = [
@@ -81,6 +82,9 @@ class OnestopEntity(object):
 
   def onestop(self):
     """Return the OnestopID for this entity."""
+    return self.data.get('onestopId') or self.make_onestop()
+    
+  def make_onestop(self):
     # Check maximum length.
     onestop = '%s-%s-%s'%(
       self.onestop_type, 
@@ -117,7 +121,7 @@ class OnestopEntity(object):
   
   # Load from GTFS or from JSON.
   @classmethod
-  def from_gtfs(cls, feed):
+  def from_gtfs(cls, feed, debug=False):
     raise NotImplementedError
 
   @classmethod
@@ -178,6 +182,11 @@ class OnestopEntity(object):
           pass
         else:
           raise
+    # merge name and geometry.
+    if 'name' in item.data:
+      self.data['name'] = item.data['name']
+    if 'geometry' in item.data:
+      self.data['geometry'] = item.data['geometry']
     # merge relations
     relkeys = ['serves', 'servedBy', 'operatedBy', 'operatorsInFeed']
     for relkey in relkeys:
@@ -224,7 +233,7 @@ class OnestopFeed(OnestopEntity):
 
   # Load / dump
   @classmethod
-  def from_gtfs(cls, feed, feedid='f-0-unknown', **kw):
+  def from_gtfs(cls, feed, feedid='f-0-unknown', debug=False, **kw):
     # Create feed
     kw['sha1'] = util.sha1file(feed.filename)
     kw['geohash'] = geom.geohash_features(feed.stops())
@@ -232,7 +241,7 @@ class OnestopFeed(OnestopEntity):
     # Load and display information about agencies
     for agency in feed.agencies():
       agency.preload()
-      oagency = OnestopOperator.from_gtfs(agency, feedid=feedid)
+      oagency = OnestopOperator.from_gtfs(agency, feedid=feedid, debug=debug)
       onestopfeed.add_child(oagency)
     return onestopfeed
   
@@ -248,7 +257,7 @@ class OnestopFeed(OnestopEntity):
     }
   
   def geohash(self):
-    return geom.geohash_features(self.stops())
+    return geom.geohash_features(self.stops())[:GEOHASH_LENGTH]
   
   # Graph
   def operatorsInFeed(self):
@@ -288,11 +297,11 @@ class OnestopOperator(OnestopEntity):
   onestop_type = 'o'
   
   def geohash(self):
-    return geom.geohash_features(self.stops())
+    return geom.geohash_features(self.stops())[:GEOHASH_LENGTH]
     
   # Load / dump
   @classmethod
-  def from_gtfs(cls, gtfs_agency, feedid='f-0-unknown'):
+  def from_gtfs(cls, gtfs_agency, feedid='f-0-unknown', debug=False):
     """Load Onestop Operator from a GTFS Agency."""
     route_counter = collections.defaultdict(int)
     agency = cls(
@@ -323,20 +332,21 @@ class OnestopOperator(OnestopEntity):
         geometry=i.geometry()
       )
       if not i.stops():
-        print "Yikes! No stops! Skipping this route."
+        if debug:
+          print "Yikes! No stops! Skipping this route." # pragma: no cover
         continue
       for j in i.stops():
         route.pclink(route, j._onestop_parent)
       key = route.onestop()
       if key in routes:
-        # raise KeyError("Route already exists!: %s"%key)
-        # Hack
-        print "Route already exists, setting temp fix..."
+        if debug: # pragma: no cover
+          print "Route already exists, setting temp fix..."
         route_counter[key] += 1
         route.data['name'] = '%s~%s'%(route.data['name'], route_counter[key])
         route.data['onestop'] = None
         key = route.onestop()
-        print "set key to:", key
+        if debug: # pragma: no cover
+          print "set key to:", key
         assert key not in routes
       route.pclink(agency, route)
       route.add_identifier(i.feedid(feedid))
@@ -408,7 +418,7 @@ class OnestopRoute(OnestopEntity):
   
   def geohash(self):
     """Return 10 characters of geohash."""
-    return geom.geohash_features(self.stops())
+    return geom.geohash_features(self.stops())[:GEOHASH_LENGTH]
 
   # Load / dump
   def json(self):
@@ -465,7 +475,7 @@ class OnestopStop(OnestopEntity):
 
   def geohash(self):
     """Return 10 characters of geohash."""
-    return mzgeohash.encode(self.point())[:10]
+    return mzgeohash.encode(self.point())[:GEOHASH_LENGTH]
 
   # Work with other interfaces
   def point(self):
