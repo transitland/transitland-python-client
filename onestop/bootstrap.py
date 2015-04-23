@@ -9,6 +9,7 @@ import urllib
 
 import mzgtfs.feed
 
+import geom
 import util
 import registry
 import entities
@@ -51,10 +52,11 @@ if __name__ == "__main__":
   if feedids and (args.filename or args.url):
     raise Exception("Cannot specify --filename or --url with Feed IDs")
   if args.url:
-    feedids = ['%s-bootstrap'%args.feedname]
+    feedids = [args.feedname]
+  if args.filename:
+    feedids = [args.feedname]
   if len(feedids) == 0:
     raise Exception("No feeds specified; try --all.")
-
 
   for feedid in feedids:
     # Load from registry, then update.
@@ -97,18 +99,25 @@ if __name__ == "__main__":
       )
     else:
       raise Exception("No filename or url provided.")
-  
-    # Load from GTFS.
-    print "Loading feed:", feedid
+
+    # Everything is now ready to create the feed.
+    print "Loading feed:", filename
     f = mzgtfs.feed.Feed(filename)
+    # If bootstrapping, update the feedid to include the geohash.
+    if args.feedname:
+      feedid = 'f-%s-%s'%(
+        geom.geohash_features(f.stops()),
+        args.feedname.lower().strip()
+      )
+    # Create OnestopFeed from GTFS.
     feed = entities.OnestopFeed.from_gtfs(
       f, 
       debug=args.debug, 
       name=feed.get('name'),
       url=url,
-      tags=feed.get('tags')
+      tags=feed.get('tags'),
+      feedid=feedid
     )
-    # If bootstrapping, update the feedid to include the geohash.
     # Print basic feed information.
     print "Feed:", feed.onestop()
     print "  Operators:", len(feed.operators())
