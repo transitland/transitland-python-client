@@ -18,7 +18,7 @@ class OnestopRegistry(object):
   def __init__(self, path='.'):
     """Path to directory containing 'feeds', 'operators', etc."""
     # Path to registry
-    self.path = path
+    self.path = path or os.getenv('ONESTOP_REGISTRY') or '.'
     if not os.path.exists(os.path.join(self.path, 'feeds')):
       raise errors.OnestopInvalidRegistry(
         'Invalid Onestop Registry directory: %s'%self.path
@@ -86,12 +86,14 @@ class OnestopRegistry(object):
     return ret
     
   def add_stopbin(self, stop):
-    stopbin = self.stopbin(stop.geohash())
-    stopbin.add_stop(stop)
+    geohash = stop.onestop()[2:7] # get geohash from onestop(), not geohash()
+    stopbin = self.stopbin(geohash)
+    stop = stopbin.add_stop(stop)
     filename = os.path.join(self.path, 'stops', 's-%s.geojson'%stopbin.prefix)
     data = stopbin.json()
     with open(filename, 'w') as f:
       util.json_dump_pretty(data, f)
+    return stop
       
       
       
