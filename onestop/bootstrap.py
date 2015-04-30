@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
   # Create dirs
   args.output = args.output or args.onestop
-  for i in ['feeds', 'operators', 'data']:
+  for i in ['feeds', 'data']:
     try:
       os.makedirs(os.path.join(args.output, i))
     except OSError, e:
@@ -137,7 +137,11 @@ if __name__ == "__main__":
       print "  Routes:", len(operator.routes())
       print "  Stops:", len(operator.stops())
       # Write out updated operators.
-      outfile = os.path.join(args.output, 'operators', '%s.geojson'%operator.onestop())
-      data = operator.json()
-      with open(outfile, 'w') as f:
-        util.json_dump_pretty(data, f)
+      # outfile = os.path.join(
+      #   args.output,
+      #   'operators',
+      #   '%s.geojson'%operator.onestop()
+      #   )
+      # data = operator.json()
+      # with open(outfile, 'w') as f:
+      #   util.json_dump_pretty(data, f)

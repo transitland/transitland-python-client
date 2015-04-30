@@ -11,8 +11,7 @@ Modules:
   geom - Geometry utilities
   util - Other utilities
   errors - Exceptions
-  update - Update operators
-  stopbins - Update Stop Bins
+  bootstrap - Create Onestop Feed from GTFS URL
   fetch - Feed aggregator
   
 """

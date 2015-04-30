@@ -36,13 +36,11 @@ Then, create a registry reader with onestop.registry.OnestopRegistry, passing th
 >>> registry = onestop.registry.OnestopRegistry('.')
 ```
 
-You can now list the known feeds and operators:
+You can now list the known feeds:
 
 ```
 >>> registry.feeds()
 ['f-9q5-lacmta', 'f-9q8-samtrans', 'f-9q8y-sanfranciscomunicipaltransportationagency', 'f-9q9-actransit', 'f-9q9-caltrain', 'f-9q9-vta', 'f-9vk-mtaharriscounty', 'f-c20-trimet', 'f-c23-kingcounty', 'f-c28-translink', 'f-dhw-miamidade', 'f-dnh-marta', 'f-dp3-cta', 'f-dpz8-ttc', 'f-dq-mtamaryland', 'f-dqc-wmata', 'f-dr5r-nyctsubway', 'f-dr5r-panynjpath', 'f-drt-mbta']
->>> registry.operators()
-['o-9q5-metrolosangeles', 'o-9q8-samtrans', 'o-9q8y-sanfranciscomunicipaltransportationagency', 'o-9q9-actransit', 'o-9q9-bayarearapidtransit', 'o-9q9-caltrain', 'o-9q9-vta', 'o-9vk-metropolitantransitauthorityofharriscounty', 'o-c20-trimet', 'o-c22y-kingcountymarinedivison', 'o-c23-metrotransit', 'o-c23n-soundtransit', 'o-c23nb-cityofseattle', 'o-c28-translink', 'o-c2b-westcoastexpress', 'o-c2b8-britishcolumbiarapidtransitcompany', 'o-dhw-miamidadetransit', 'o-dnh-metropolitanatlantarapidtransitauthority', 'o-dp3-chicagotransitauthority', 'o-dpz8-ttc', 'o-dq-mtaofficeoflocaltransitsupport', 'o-dqc-marylandtransitadministration', 'o-dqc-met', 'o-dqcjr-dccirculator', 'o-dr5r-mtanewyorkcitytransit', 'o-dr5r-portauthoritytranshudsoncorporation', 'o-drt-mbta', 'o-drt3p-massport']
 ```
 
 ## Working with a feed
@@ -56,20 +54,6 @@ A specific feed can be read with OnestopRegistry.feed(). The resulting OnestopFe
 >>> feed.url()
 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip'
 >>> feed.download('caltrain-current-gtfs.zip')
-```
-
-## Operators, routes, and stops
-
-Each feed contains data for one or more operators, which can be read using OnestopRegistry.operator(). The resulting OnestopOperator then provides the associated routes, stops, and references to other databases.
-
-```
->>> operator = registry.operator('o-9q9-caltrain')
->>> len(operator.stops())
-64
->>> [(stop.onestop(), stop.point()) for stop in operator.stops()][:5]
-[('s-9q9k658fd1-sanjosediridoncaltrain', [-121.903173, 37.329231]), ('s-9q9j8u2f59-haywardparkcaltrain', [-122.309608, 37.552994]), ('s-9q9hxgh7t0-lawrencecaltrain', [-121.997114, 37.370598]), ('s-9q9j3w3x0b-belmontcaltrain', [-122.275738, 37.52089]), ('s-9q9k62rhnc-tamiencaltrainstation', [-121.883403, 37.311638])]
->>> [(route.onestop(), route.name()) for route in operator.routes()]
-[('r-9q9-local', 'Local'), ('r-9q9k6-tamien~sanjosediridoncaltrainshuttle', 'Tamien / San Jose Diridon Caltrain Shuttle'), ('r-9q9-bullet', 'Bullet'), ('r-9q9-limited', 'Limited')]
 ```
 
 ## Download current GTFS feeds
