@@ -301,6 +301,14 @@ class OnestopOperator(OnestopEntity):
   
   def geohash(self):
     return geom.geohash_features(self.stops())[:GEOHASH_LENGTH]
+
+  def _cache_onestop(self):
+    key = 'onestopId'
+    self.data[key] = self.make_onestop()
+    for i in self.routes():
+      i.data[key] = i.make_onestop()
+    for i in self.stops():
+      i.data[key] = i.make_onestop()
     
   # Load / dump
   @classmethod
@@ -415,7 +423,7 @@ class OnestopOperator(OnestopEntity):
   def stop(self, onestopId):
     """Return a single stop by Onestop ID."""
     return mzgtfs.util.filtfirst(self.stops(), onestop=onestopId)
-        
+  
 class OnestopRoute(OnestopEntity):
   onestop_type = 'r'
   

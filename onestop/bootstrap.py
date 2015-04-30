@@ -102,7 +102,7 @@ if __name__ == "__main__":
 
     # Everything is now ready to create the feed.
     print "Loading feed:", filename
-    f = mzgtfs.feed.Feed(filename)
+    f = mzgtfs.feed.Feed(filename, debug=args.debug)
     # If bootstrapping, update the feedid to include the geohash.
     if args.feedname:
       feedid = 'f-%s-%s'%(
@@ -137,6 +137,8 @@ if __name__ == "__main__":
       print "  Routes:", len(operator.routes())
       print "  Stops:", len(operator.stops())
       # Write out updated operators.
+      # Make things faster.
+      # operator._cache_onestop()
       # outfile = os.path.join(
       #   args.output,
       #   'operators',
