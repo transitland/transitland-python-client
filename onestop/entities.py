@@ -156,10 +156,13 @@ class OnestopEntity(object):
   def identifiers(self):
     return self.data.get('identifiers') or []
 
+  def set_tag(self, key, value):
+    self.add_tags({key:value})
+
   def add_tags(self, tags):
     if 'tags' not in self.data:
       self.data['tags'] = {}
-    # self.data['tags'].update(tags)
+    self.data['tags'].update(tags)
 
   def add_identifier(self, identifier):
     """Add GTFS data to the set of identifiers."""
@@ -459,7 +462,6 @@ class OnestopRoute(OnestopEntity):
   def stop(self, onestopId):
     """Return a single stop by Onestop ID."""
     return mzgtfs.util.filtfirst(self.stops(), onestop=onestopId)
-
 
 class OnestopStop(OnestopEntity):
   onestop_type = 's'
