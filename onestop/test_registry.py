@@ -35,14 +35,3 @@ class TestOnestopRegistry(unittest.TestCase):
     feed = r.feed(self.test_feed)
     assert feed
     assert feed.onestop() == self.test_feed
-
-  def test_operators(self):
-    r = registry.OnestopRegistry(self.path)
-    operators = r.operators()
-    files = glob.glob(os.path.join(self.path, 'feeds', 'f-*.json'))
-    assert len(operators) == len(files)
-    
-  def test_operator(self):
-    r = registry.OnestopRegistry(self.path)
-    operator = r.operator(self.test_operator)
-    assert operator.onestop() == self.test_operator
