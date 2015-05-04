@@ -6,11 +6,39 @@ import urllib2
 import mzgtfs.feed
 import entities
 
-class DatastoreUpdater(object):
+class Datastore(object):
   def __init__(self, endpoint, apitoken=None, debug=False):
     self.endpoint = endpoint
     self.debug = debug
     self.apitoken = apitoken
+
+  def postjson(self, endpoint, data):
+    if self.debug:  # pragma: no cover
+      print "====== POST: %s ======"%endpoint
+      print data
+    req = urllib2.Request(endpoint)
+    req.add_header('Content-Type', 'application/json')
+    if self.apitoken:
+      req.add_header('Authorization', 'Token token=%s'%self.apitoken)
+    response = urllib2.urlopen(req, json.dumps(data))
+    ret = json.loads(response.read())
+    if self.debug:  # pragma: no cover
+      print "--> Response: "
+      print ret
+    return ret
+
+  def getjson(self, endpoint):
+    if self.debug:  # pragma: no cover
+      print "====== GET: %s ======"%endpoint
+    req = urllib2.Request(endpoint)
+    if self.apitoken:
+      req.add_header('Authorization', 'Token token=%s'%self.apitoken)
+    response = urllib2.urlopen(req)
+    ret = json.loads(response.read())
+    if self.debug:  # pragma: no cover
+      print "--> Response: "
+      print ret
+    return ret
 
   def changeset(self, data, rels=True):
     onestop_types = {
@@ -31,34 +59,6 @@ class DatastoreUpdater(object):
          }
        }
     }
-
-  def postjson(self, endpoint, data):
-    if self.debug:
-      print "====== POST: %s ======"%endpoint
-      print data
-    req = urllib2.Request(endpoint)
-    req.add_header('Content-Type', 'application/json')
-    if self.apitoken:
-      req.add_header('Authorization', 'Token token=%s'%self.apitoken)
-    response = urllib2.urlopen(req, json.dumps(data))
-    ret = json.loads(response.read())
-    if self.debug:
-      print "--> Response: "
-      print ret
-    return ret
-
-  def getjson(self, endpoint):
-    if self.debug:
-      print "====== GET: %s ======"%endpoint
-    req = urllib2.Request(endpoint)
-    if self.apitoken:
-      req.add_header('Authorization', 'Token token=%s'%self.apitoken)
-    response = urllib2.urlopen(req)
-    ret = json.loads(response.read())
-    if self.debug:
-      print "--> Response: "
-      print ret
-    return ret
     
   def update_entity(self, entity, rels=True):
     data = self.changeset(entity.json_datastore(rels=rels))
@@ -73,7 +73,6 @@ class DatastoreUpdater(object):
     self.update_entity(operator, rels=False)
     for entity in entities:
       self.update_entity(entity, rels=False)
-
     # Update relationships
     self.update_entity(operator)
     for entity in entities:

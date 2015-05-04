@@ -343,7 +343,7 @@ class OnestopOperator(OnestopEntity):
         geometry=i.geometry()
       )
       if not i.stops():
-        if debug:
+        if debug: # pragma: no cover
           print "Yikes! No stops! Skipping this route." # pragma: no cover
         continue
       for j in i.stops():
