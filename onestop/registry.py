@@ -14,7 +14,7 @@ import errors
 
 class OnestopRegistry(object):
   """Onestop Registry."""
-  def __init__(self, path='.'):
+  def __init__(self, path=None):
     """Path to directory containing feeds."""
     # Path to registry
     self.path = path or os.getenv('ONESTOP_REGISTRY') or '.'
