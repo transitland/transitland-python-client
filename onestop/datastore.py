@@ -35,7 +35,7 @@ class Datastore(object):
       req.add_header('Authorization', 'Token token=%s'%self.apitoken)
     response = urllib2.urlopen(req)
     ret = json.loads(response.read())
-    if self.debug:  # pragma: no cover
+    if self.debug: # pragma: no cover
       print "--> Response: "
       print ret
     return ret
