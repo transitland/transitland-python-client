@@ -7,7 +7,7 @@ import registry
 def run():
   parser = argparse.ArgumentParser(description='Read Onestop Registry')
   parser.add_argument('feedids', nargs='*', help='Onestop Feed IDs')
-  parser.add_argument('--onestop', help='Onestop Registry path', default='.')
+  parser.add_argument('--onestop', help='Onestop Registry Path')
   parser.add_argument('--all', help='Update all feeds', action='store_true')
   parser.add_argument('--verbose', help='Verbosity', type=int, default=1)
   args = parser.parse_args()
