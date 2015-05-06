@@ -15,13 +15,13 @@ def run():
   parser.add_argument('feedids', nargs='*', help='Onestop Feed IDs')
   parser.add_argument('--debug', help='Debug', action='store_true')
   parser.add_argument('--onestop', help='Onestop Registry Path')
-  parser.add_argument('--apitoken', 
-    help='API Token',
-    default=os.getenv('ONESTOP_API_AUTH_TOKEN')
+  parser.add_argument('--authtoken', 
+    help='API Authentication Token',
+    default=os.getenv('TRANSITLAND_DATASTORE_AUTH_TOKEN')
   )
-  parser.add_argument("--host", 
-    help="Datastore Host", 
-    default=os.getenv('ONESTOP_DATASTORE_HOST') or 'http://localhost:3000'
+  parser.add_argument("--datastore", 
+    help="Datastore Datastore URL", 
+    default=os.getenv('TRANSITLAND_DATASTORE_URL') or 'http://localhost:3000/api/v1'
   )
   args = parser.parse_args()
 
@@ -36,20 +36,23 @@ def run():
       continue
       
     print "===== Validating feed: %s ====="%(feed.onestop())
-    # run feedvalidator.py
+    # feed.validate_feedvalidator()
+    gtfsfeed = mzgtfs.feed.Feed(feed.filename())
+    gtfs.preload()
+    gtfsfeed.validate()
     
     print "===== Updating datastore: %s ====="%(feed.onestop())
     onestopfeed = entities.OnestopFeed.from_gtfs(
-      mzgtfs.feed.Feed(feed.filename()), 
+      gtfsfeed, 
       feedid=feed.name()
     )
     updater = datastore.Datastore(
-      args.host, 
-      apitoken=args.apitoken, 
+      args.datastore, 
+      apitoken=args.authtoken, 
       debug=args.debug
     )
     for entity in onestopfeed.operators():
       updater.update_operator(entity)
-
+      
 if __name__ == "__main__":
   run()

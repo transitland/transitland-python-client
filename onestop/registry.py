@@ -17,7 +17,7 @@ class OnestopRegistry(object):
   def __init__(self, path=None):
     """Path to directory containing feeds."""
     # Path to registry
-    self.path = path or os.getenv('ONESTOP_REGISTRY') or '.'
+    self.path = path or os.getenv('TRANSITLAND_FEED_REGISTRY_PATH') or '.'
     if not os.path.exists(os.path.join(self.path, 'feeds')):
       raise errors.OnestopInvalidRegistry(
         'Invalid Onestop Registry directory: %s'%self.path
