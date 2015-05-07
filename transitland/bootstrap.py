@@ -1,4 +1,4 @@
-"""Read a GTFS file and convert to Onestop JSON."""
+"""Create a Transitland Feed Registry entry from a GTFS file."""
 import argparse
 import json
 import sys
@@ -15,14 +15,16 @@ import registry
 import entities
 
 if __name__ == "__main__":
-  parser = argparse.ArgumentParser(description='Onestop Registry from GTFS.')
+  parser = argparse.ArgumentParser(
+    description='Create Transitland Feed Registry entry from GTFS.'
+  )
   parser.add_argument('feedids', nargs='*', help='Feed IDs')
   parser.add_argument('--all', help='Update all feeds', action='store_true')
   parser.add_argument('--url', help='GTFS url')
   parser.add_argument('--filename', help='GTFS feed filename')
   parser.add_argument('--feedname', help='Feed name, if generating from GTFS')
-  parser.add_argument('--onestop', help='Onestop Registry path', default='.')
-  parser.add_argument('--output', help='Output path (default: Onestop)')
+  parser.add_argument('--registry', help='Transitland Feed Registry path')
+  parser.add_argument('--output', help='Output path', default='.')
   parser.add_argument(
     '--cache',
     help='Feed cache setting. Allowed: force, ignore, cache (default)',
@@ -34,7 +36,6 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   # Create dirs
-  args.output = args.output or args.onestop
   for i in ['feeds', 'data']:
     try:
       os.makedirs(os.path.join(args.output, i))
@@ -42,7 +43,7 @@ if __name__ == "__main__":
       pass
 
   # Registry
-  r = registry.OnestopRegistry(args.onestop)
+  r = registry.FeedRegistry(args.registry)
 
   # Feeds to update
   feedids = args.feedids
@@ -109,8 +110,8 @@ if __name__ == "__main__":
         geom.geohash_features(f.stops()),
         args.feedname.lower().strip()
       )
-    # Create OnestopFeed from GTFS.
-    feed = entities.OnestopFeed.from_gtfs(
+    # Create Transitland Feed from GTFS.
+    feed = entities.Feed.from_gtfs(
       f, 
       debug=args.debug, 
       name=feed.get('name'),

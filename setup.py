@@ -5,7 +5,7 @@ import transitland
 setup(
   name='transitland',
   version=transitland.__version__,
-  description='Transitland & Onestop',
+  description='Transitland Client',
   author='Ian Rees',
   author_email='ian@mapzen.com',
   url='https://github.com/transitland/transitland-python-client',

@@ -1,10 +1,10 @@
 ##### Exceptions #####
 
-class OnestopExistingIdentifier(KeyError):
+class ExistingIdentifierError(KeyError):
   pass
 
-class OnestopNoPoints(ValueError):
+class NoPointsError(ValueError):
   pass
   
-class OnestopInvalidRegistry(ValueError):
+class InvalidFeedRegistryError(ValueError):
   pass

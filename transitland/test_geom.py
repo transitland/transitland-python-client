@@ -87,7 +87,7 @@ class Test_geohash_features(unittest.TestCase):
     assert geom.geohash_features(data) == '9q9'
     
   def test_geohash_features_no_points(self):
-    with self.assertRaises(errors.OnestopNoPoints):
+    with self.assertRaises(errors.NoPointsError):
       geom.geohash_features([])
     
 class Test_centroid_points(unittest.TestCase):

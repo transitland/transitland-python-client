@@ -1,19 +1,18 @@
-"""Fetch Onestop feeds."""
-import onestop
+"""Fetch Transitland Feed Registry feeds."""
 import argparse
 
 import registry
 
 def run():
-  parser = argparse.ArgumentParser(description='Read Onestop Registry')
-  parser.add_argument('feedids', nargs='*', help='Onestop Feed IDs')
-  parser.add_argument('--onestop', help='Onestop Registry Path')
+  parser = argparse.ArgumentParser(description='Fetch Transitland Feeds')
+  parser.add_argument('feedids', nargs='*', help='Feed IDs')
+  parser.add_argument('--registry', help='Feed Registry Path')
   parser.add_argument('--all', help='Update all feeds', action='store_true')
   parser.add_argument('--verbose', help='Verbosity', type=int, default=1)
   args = parser.parse_args()
 
-  # Onestop Registry
-  r = registry.OnestopRegistry(path=args.onestop)
+  # Transitland Feed Registry
+  r = registry.FeedRegistry(path=args.registry)
   feedids = args.feedids
   if args.all:
     feedids = r.feeds()

@@ -1,13 +1,14 @@
 """
 Transitland Python Client.
 
-This library implements an interface for Onestop IDs and the Transitland Feed Registry:
+This library implements an interface for the Transitland Feed Registry
+ and Onestop IDs:
 
   https://github.com/transit-land/onestop-id
 
 Modules:
   registry - Feed Registry reader
-  entities - Onestop entities  
+  entities - Transitland entities  
   geom - Geometry utilities
   util - Other utilities
   errors - Exceptions
