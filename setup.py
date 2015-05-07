@@ -1,16 +1,16 @@
 from setuptools import setup
 
-import onestop
+import transitland
 
 setup(
-  name='onestop',
-  version=onestop.__version__,
-  description='Transitland Onestop',
+  name='transitland',
+  version=transitland.__version__,
+  description='Transitland & Onestop',
   author='Ian Rees',
   author_email='ian@mapzen.com',
-  url='https://github.com/transitland/onestop-id-python-client',
+  url='https://github.com/transitland/transitland-python-client',
   license='License :: OSI Approved :: MIT License',
-  packages=['onestop'],
+  packages=['transitland'],
   install_requires=['mzgtfs', 'mzgeohash'],
   zip_safe=False,
   # Include examples.

@@ -89,7 +89,7 @@ class Datastore(object):
     response = self.getjson(endpoint)
     search_entities = set()
     for i in response['stops']:
-      e = onestop.entities.OnestopStop(
+      e = entities.OnestopStop(
         name=i['name'],
         geometry=i['geometry'],
         onestopId=i['onestop_id']

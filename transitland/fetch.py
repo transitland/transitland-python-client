@@ -21,8 +21,7 @@ def run():
     raise Exception("No feeds specified! Try --all")
   for feedid in feedids:
     feed = r.feed(feedid)
-    filename = '%s.zip'%feedid
-    feed.download(filename, debug=args.verbose)
+    feed.download(debug=args.verbose)
     
 if __name__ == "__main__":
   run()
