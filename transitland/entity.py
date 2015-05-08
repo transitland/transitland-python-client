@@ -1,8 +1,5 @@
 """Base Transitland Entity."""
-import collections
 import json
-import copy
-import re
 
 import mzgtfs.feed
 import mzgtfs.util

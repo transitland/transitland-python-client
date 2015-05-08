@@ -6,7 +6,6 @@ import mzgtfs.util
 import geom
 import util
 import errors
-
 from entity import Entity
 from stop import Stop
 from route import Route
