@@ -92,7 +92,7 @@ class Datastore(object):
       e = entities.Stop(
         name=i['name'],
         geometry=i['geometry'],
-        onestopId=i['onestop_id']
+        onestop_id=i['onestopId']
       )
       search_entities.add(e)
     return search_entities

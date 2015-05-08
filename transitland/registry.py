@@ -34,9 +34,9 @@ class FeedRegistry(object):
   def feeds(self):
     return self._registered('feeds', 'f')
           
-  def feed(self, onestopId):
+  def feed(self, onestop_id):
     """Load a feed by Onestop ID."""
-    filename = os.path.join(self.path, 'feeds', '%s.json'%onestopId)
+    filename = os.path.join(self.path, 'feeds', '%s.json'%onestop_id)
     with open(filename) as f:
       data = json.load(f)    
     return entities.Feed.from_json(data)

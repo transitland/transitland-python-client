@@ -67,6 +67,8 @@ class Entity(object):
 
   def __init__(self, **data):
     """Set name, Onestop ID, and geometry."""
+    if 'onestop_id' in data:
+      data['onestopId'] = data.pop('onestop_id')
     self.data = data
     self.parents = set()
     self.children = set()
@@ -279,9 +281,9 @@ class Feed(Entity):
   def operators(self):
     return set(self.children) # copy
   
-  def operator(self, onestopId):
+  def operator(self, onestop_id):
     """Return a single operator by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.operators(), onestop=onestopId)
+    return mzgtfs.util.filtfirst(self.operators(), onestop=onestop_id)
   
   def routes(self):
     routes = set()
@@ -289,9 +291,9 @@ class Feed(Entity):
       routes |= i.routes()
     return routes
 
-  def route(self, onestopId):
+  def route(self, onestop_id):
     """Return a single route by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.routes(), onestop=onestopId)
+    return mzgtfs.util.filtfirst(self.routes(), onestop=onestop_id)
   
   def stops(self):
     stops = set()
@@ -299,9 +301,9 @@ class Feed(Entity):
       stops |= i.stops()
     return stops
 
-  def stop(self, onestopId):
+  def stop(self, onestop_id):
     """Return a single stop by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.stops(), onestop=onestopId)
+    return mzgtfs.util.filtfirst(self.stops(), onestop=onestop_id)
 
 class Operator(Entity):
   """Transitland Operator Entity."""
@@ -418,9 +420,9 @@ class Operator(Entity):
   def routes(self):
     return set(self.children)
 
-  def route(self, onestopId):
+  def route(self, onestop_id):
     """Return a single route by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.routes(), onestop=onestopId)
+    return mzgtfs.util.filtfirst(self.routes(), onestop=onestop_id)
   
   def stops(self):
     stops = set()
@@ -428,9 +430,9 @@ class Operator(Entity):
       stops |= i.stops()
     return stops  
 
-  def stop(self, onestopId):
+  def stop(self, onestop_id):
     """Return a single stop by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.stops(), onestop=onestopId)
+    return mzgtfs.util.filtfirst(self.stops(), onestop=onestop_id)
   
 class Route(Entity):
   """Transitland Route Entity."""
@@ -469,16 +471,16 @@ class Route(Entity):
   def operators(self):
     return set(self.parents) # copy
 
-  def operator(self, onestopId):
+  def operator(self, onestop_id):
     """Return a single operator by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.operators(), onestop=onestopId)
+    return mzgtfs.util.filtfirst(self.operators(), onestop=onestop_id)
 
   def stops(self):
     return set(self.children) # copy
 
-  def stop(self, onestopId):
+  def stop(self, onestop_id):
     """Return a single stop by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.stops(), onestop=onestopId)
+    return mzgtfs.util.filtfirst(self.stops(), onestop=onestop_id)
 
 class Stop(Entity):
   """Transitland Stop Entity."""
@@ -527,6 +529,6 @@ class Stop(Entity):
       agencies |= i.parents
     return agencies
 
-  def operator(self, onestopId):
+  def operator(self, onestop_id):
     """Return a single operator by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.operators(), onestop=onestopId)
+    return mzgtfs.util.filtfirst(self.operators(), onestop=onestop_id)
