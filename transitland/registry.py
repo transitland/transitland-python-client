@@ -12,12 +12,14 @@ import util
 import entities
 import errors
 
+REGISTRY_ENV='TRANSITLAND_FEED_REGISTRY_PATH'
+
 class FeedRegistry(object):
   """Transitland Feed Registry."""
   def __init__(self, path=None):
     """Path to directory containing feeds."""
     # Path to registry
-    self.path = path or os.getenv('TRANSITLAND_FEED_REGISTRY_PATH') or '.'
+    self.path = path or os.getenv(REGISTRY_ENV) or '.'
     if not os.path.exists(os.path.join(self.path, 'feeds')):
       raise errors.InvalidFeedRegistryError(
         'Invalid Feed Registry directory: %s'%self.path

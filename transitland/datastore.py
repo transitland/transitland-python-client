@@ -3,7 +3,6 @@ import json
 import urllib
 import urllib2
 
-import mzgtfs.feed
 import entities
 
 class Datastore(object):
