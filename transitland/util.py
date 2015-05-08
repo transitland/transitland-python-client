@@ -3,6 +3,50 @@ import urllib
 import os
 import json
 import hashlib
+import re
+
+ONESTOP_LENGTH = 64
+GEOHASH_LENGTH = 10
+
+# Regexes
+REPLACE_CHAR = [
+  # replace &, @, and / with ~
+  [r':','~'], 
+  [r'&','~'], 
+  [r'@','~'],
+  [r'\/','~'],
+  # replace every other special char
+  [r'[^~0-9a-zA-Z]+', '']
+]
+REPLACE_CHAR = [[re.compile(i[0]), i[1]] for i in REPLACE_CHAR]
+
+REPLACE_ABBR = [
+  'street', 
+  'st',
+  'sts',
+  'ctr',
+  'center',
+  'drive',
+  'dr',
+  'ave', 
+  'avenue', 
+  'av',
+  'boulevard', 
+  'blvd', 
+  'road', 
+  'rd', 
+  'alley', 
+  'aly', 
+  'way', 
+  'parkway', 
+  'pkwy', 
+  'lane',
+  'ln',
+  'hwy',
+  'court',
+  'ct',
+]
+REPLACE_ABBR = [[re.compile(r'\b%s\b'%i), ''] for i in REPLACE_ABBR]
 
 def printf(msg):
   print msg

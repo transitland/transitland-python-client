@@ -177,8 +177,8 @@ class TestFeed(unittest.TestCase):
   def test_onestop_maxlen(self):
     entity = example_feed()
     entity.data['name'] = 'maximumlength' * 10
-    assert len(entity.data['name']) > entities.ONESTOP_LENGTH
-    assert len(entity.onestop()) <= entities.ONESTOP_LENGTH
+    assert len(entity.data['name']) > util.ONESTOP_LENGTH
+    assert len(entity.onestop()) <= util.ONESTOP_LENGTH
 
   # Other Entity base methods that only make sense to test here...
   def test_json(self):
@@ -491,7 +491,7 @@ class TestStop(unittest.TestCase):
   
   def test_geohash(self):
     entity = example_feed().stop(self.expect['onestopId'])
-    assert entity.geohash() == '9qsfnb5uz6'
+    assert entity.geohash()[:10] == '9qsfnb5uz6'
 
   def test_point(self):
     entity = example_feed().stop(self.expect['onestopId'])
