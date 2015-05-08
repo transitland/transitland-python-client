@@ -9,7 +9,7 @@ import util
 
 class Test_download(unittest.TestCase):
   def setUp(self):
-    self.url = 'file://%s'%os.path.abspath(util.example_feed())    
+    self.url = 'file://%s'%os.path.abspath(util.example_gtfs_feed_path())    
     self.sha1 = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
   
   def test_download(self):
@@ -73,7 +73,7 @@ class Test_json_dump_pretty(unittest.TestCase):
   
 class Test_sha1file(unittest.TestCase):
   def test_sha1file(self):
-    data = util.sha1file(util.example_feed())
+    data = util.sha1file(util.example_gtfs_feed_path())
     expect = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
     assert data == expect
   
@@ -85,7 +85,7 @@ class Test_example_registry(unittest.TestCase):
 
 class Test_example_feed(unittest.TestCase):
   def test_example_feed(self):
-    data = util.example_feed()
+    data = util.example_gtfs_feed_path()
     assert os.path.exists(data)
     assert data.endswith('.zip')
   

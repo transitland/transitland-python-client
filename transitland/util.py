@@ -55,7 +55,7 @@ def example_registry(path=None):
     'examples'    
   )
 
-def example_feed(feed='f-9qs-dta.zip'):
+def example_gtfs_feed_path(feed='f-9qs-dta.zip'):
   return os.path.join(
     os.path.dirname(__file__), 
     'examples',

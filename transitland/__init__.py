@@ -1,8 +1,7 @@
 """
 Transitland Python Client.
 
-This library implements an interface for the Transitland Feed Registry
- and Onestop IDs:
+This library implements an interface for the Transitland Feed Registry, Transitland Datastore, and working with Onestop IDs:
 
   https://github.com/transit-land/onestop-id
 

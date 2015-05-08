@@ -19,7 +19,7 @@ class FeedRegistry(object):
     # Path to registry
     self.path = path or os.getenv('TRANSITLAND_FEED_REGISTRY_PATH') or '.'
     if not os.path.exists(os.path.join(self.path, 'feeds')):
-      raise errors.InvalidFeedRegistry(
+      raise errors.InvalidFeedRegistryError(
         'Invalid Feed Registry directory: %s'%self.path
       )
 

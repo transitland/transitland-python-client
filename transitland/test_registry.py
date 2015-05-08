@@ -21,7 +21,7 @@ class TestFeedRegistry(unittest.TestCase):
     assert r.path == self.path
     
   def test_init_check_path(self):
-    with self.assertRaises(errors.InvalidFeedRegistry):
+    with self.assertRaises(errors.InvalidFeedRegistryError):
       r = registry.FeedRegistry('/dev/null')
 
   def test_feeds(self):
