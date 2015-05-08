@@ -1,4 +1,4 @@
-"""Read and write Onestop data."""
+"""Read and write Transitland Feed Registry."""
 import sys
 import os
 import glob
@@ -12,15 +12,15 @@ import util
 import entities
 import errors
 
-class OnestopRegistry(object):
-  """Onestop Registry."""
+class FeedRegistry(object):
+  """Transitland Feed Registry."""
   def __init__(self, path=None):
     """Path to directory containing feeds."""
     # Path to registry
     self.path = path or os.getenv('TRANSITLAND_FEED_REGISTRY_PATH') or '.'
     if not os.path.exists(os.path.join(self.path, 'feeds')):
-      raise errors.OnestopInvalidRegistry(
-        'Invalid Onestop Registry directory: %s'%self.path
+      raise errors.InvalidFeedRegistryError(
+        'Invalid Feed Registry directory: %s'%self.path
       )
 
   def _registered(self, path, prefix):
@@ -34,9 +34,9 @@ class OnestopRegistry(object):
   def feeds(self):
     return self._registered('feeds', 'f')
           
-  def feed(self, onestopId):
-    """Load a feed by onestopId."""
-    filename = os.path.join(self.path, 'feeds', '%s.json'%onestopId)
+  def feed(self, onestop_id):
+    """Load a feed by Onestop ID."""
+    filename = os.path.join(self.path, 'feeds', '%s.json'%onestop_id)
     with open(filename) as f:
       data = json.load(f)    
-    return entities.OnestopFeed.from_json(data)
+    return entities.Feed.from_json(data)

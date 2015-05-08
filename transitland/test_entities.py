@@ -13,15 +13,19 @@ import util
 import entities
 import errors
 
-def example_feed(*args, **kw):
-  return mzgtfs.feed.Feed(util.example_feed(*args, **kw))
+def example_gtfs_feed(*args, **kw):
+  a = mzgtfs.feed.Feed(
+    util.example_gtfs_feed_path(*args, **kw)
+  )
+  return a
 
-def example_onestopfeed():
-  feed = mzgtfs.feed.Feed(util.example_feed())
-  onestopfeed = entities.OnestopFeed.from_gtfs(feed, name='test')
-  return onestopfeed
+def example_feed():
+  return entities.Feed.from_gtfs(
+    example_gtfs_feed(), 
+    name='test'
+  )
 
-class TestOnestopEntity(unittest.TestCase):
+class TestEntity(unittest.TestCase):
   expect = {
     'name':'foobar',
     'foo':'bar',
@@ -30,39 +34,39 @@ class TestOnestopEntity(unittest.TestCase):
   }
     
   def test_init(self):
-    entity = entities.OnestopEntity(**self.expect)
+    entity = entities.Entity(**self.expect)
   
   def test_name(self):
-    entity = entities.OnestopEntity(**self.expect)
+    entity = entities.Entity(**self.expect)
     assert entity.name() == self.expect['name']
   
   def test_mangle(self):
-    entity = entities.OnestopEntity(**self.expect)
+    entity = entities.Entity(**self.expect)
     assert entity.mangle('A b C {d%') == 'abcd'
     assert entity.mangle('ABCD') == 'abcd'
     assert entity.mangle('A&B@C:D') == 'a~b~c~d'
 
   def test_from_json(self):
     data = json.loads(json.dumps(self.expect))
-    entity = entities.OnestopEntity.from_json(data)
+    entity = entities.Entity.from_json(data)
     assert entity.name() == self.expect['name']
   
   def test_add_identifier(self):
     data = ['abc', 'def']
-    entity = entities.OnestopEntity()
+    entity = entities.Entity()
     for k in data:
       entity.add_identifier(k)
     assert len(entity.identifiers()) == 2
     for i in entity.identifiers():
       assert i in data
-    with self.assertRaises(errors.OnestopExistingIdentifier):
+    with self.assertRaises(errors.ExistingIdentifierError):
       entity.add_identifier('abc')
 
   def test_merge(self):
     data = ['abc', 'def']
-    entity1 = entities.OnestopEntity()
+    entity1 = entities.Entity()
     entity1.add_identifier('abc')
-    entity2 = entities.OnestopEntity()
+    entity2 = entities.Entity()
     entity2.add_identifier('def')
     entity1.merge(entity2)
     assert len(entity1.identifiers()) == 2
@@ -71,14 +75,14 @@ class TestOnestopEntity(unittest.TestCase):
 
   def test_merge_identifiers(self):
     data = ['abc', 'def']
-    entity = entities.OnestopEntity()
+    entity = entities.Entity()
     for k in data:
       entity.add_identifier(k)
     
   # Graph stuff...
   def test_pclink(self):
-    entity1 = entities.OnestopEntity()
-    entity2 = entities.OnestopEntity()
+    entity1 = entities.Entity()
+    entity2 = entities.Entity()
     assert len(entity1.children) == 0
     assert len(entity2.parents) == 0
     entity1.pclink(entity1, entity2)
@@ -86,33 +90,33 @@ class TestOnestopEntity(unittest.TestCase):
     assert len(entity2.parents) == 1
     
   def test_add_child(self):
-    entity1 = entities.OnestopEntity()
-    entity2 = entities.OnestopEntity()
+    entity1 = entities.Entity()
+    entity2 = entities.Entity()
     entity1.add_child(entity2)
     assert len(entity1.children) == 1
     assert len(entity2.parents) == 1
 
   def test_add_parent(self):
-    entity1 = entities.OnestopEntity()
-    entity2 = entities.OnestopEntity()
+    entity1 = entities.Entity()
+    entity2 = entities.Entity()
     entity2.add_parent(entity1)
     assert len(entity1.children) == 1
     assert len(entity2.parents) == 1
 
   # TODO: these tests are not ideal.
   def test_geometry(self):
-    entity = entities.OnestopEntity(**self.expect)
+    entity = entities.Entity(**self.expect)
     assert entity.geometry() is None
   
   def test_tags(self):
-    entity = entities.OnestopEntity(**self.expect)
+    entity = entities.Entity(**self.expect)
     assert not entity.tags()
     assert hasattr(entity.tags(), 'keys')
   
   # ... the rest of Entity base methods require NotImplemetedError features.
   def test_onestop_notimplemented(self):
     # requires geohash() to be implemented.
-    entity = entities.OnestopEntity(**self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
       entity.id()
     with self.assertRaises(NotImplementedError):
@@ -120,7 +124,7 @@ class TestOnestopEntity(unittest.TestCase):
     
   def test_geom_notimplemented(self):
     # requires geohash() and point() to be implemented.
-    entity = entities.OnestopEntity(**self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
       entity.geohash()
     with self.assertRaises(NotImplementedError):
@@ -130,15 +134,15 @@ class TestOnestopEntity(unittest.TestCase):
       
   def test_load_dump_notimplemented(self):
     # requires json() to be implemented.
-    entity = entities.OnestopEntity(**self.expect)
+    entity = entities.Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
-      entities.OnestopEntity.from_gtfs(example_feed())
+      entities.Entity.from_gtfs(example_gtfs_feed())
     with self.assertRaises(NotImplementedError):
       entity.json()
     with self.assertRaises(NotImplementedError):
       entity.json_datastore()
 
-class TestOnestopFeed(unittest.TestCase):
+class TestFeed(unittest.TestCase):
   expect = {
     'feedFormat': 'gtfs',
     'name': 'test',
@@ -163,15 +167,15 @@ class TestOnestopFeed(unittest.TestCase):
   
   # Feed implementes geohash(), so we will test many Entity base methods here.
   def test_id(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     assert entity.id() == self.expect['onestopId']
   
   def test_onestop(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     assert entity.onestop() == self.expect['onestopId']
 
   def test_onestop_maxlen(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     entity.data['name'] = 'maximumlength' * 10
     assert len(entity.data['name']) > entities.ONESTOP_LENGTH
     assert len(entity.onestop()) <= entities.ONESTOP_LENGTH
@@ -179,7 +183,7 @@ class TestOnestopFeed(unittest.TestCase):
   # Other Entity base methods that only make sense to test here...
   def test_json(self):
     # Check result looks like self.expect.
-    entity = example_onestopfeed()
+    entity = example_feed()
     data = entity.json()
     for k in ('onestopId','name','url','sha1','feedFormat'):
       assert data[k] == self.expect[k]
@@ -188,13 +192,13 @@ class TestOnestopFeed(unittest.TestCase):
   
   def test_from_json(self):
     # TODO: more thorough testing here...
-    entity = example_onestopfeed()
-    roundtrip = entities.OnestopFeed.from_json(entity.json())
+    entity = example_feed()
+    roundtrip = entities.Feed.from_json(entity.json())
     self._sanity(roundtrip)
 
   def test_json_datastore(self):
     # Alternate JSON representation, for datastore...
-    entity = example_onestopfeed()
+    entity = example_feed()
     data = entity.json_datastore()
     assert 'identifiers' not in data
     assert 'features' not in data
@@ -210,44 +214,44 @@ class TestOnestopFeed(unittest.TestCase):
   # Geometry and point are not implemented...
   def test_geometry(self):
     # TODO: Feed doesn't have geometry... convex hull like operator?
-    entity = example_onestopfeed()
+    entity = example_feed()
     assert entity.geometry() is None
     
   def test_point(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     with self.assertRaises(NotImplementedError):
       entity.point()
       
   def test_bbox(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     with self.assertRaises(NotImplementedError):
       entity.bbox()
   
   # Test OnestopFeed methods
   def test_url(self):
     # TODO: feed doesn't have url...
-    entity = example_onestopfeed()
+    entity = example_feed()
     assert entity.url() == self.expect['url']
     
   def test_sha1(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     assert entity.sha1() == self.expect['sha1']
 
   def test_feedFormat(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     assert entity.feedFormat() == self.expect['feedFormat']    
   
   # Test fetching...
   def test_download(self):
     # TODO: feed doesn't have url...
-    entity = example_onestopfeed()
+    entity = example_feed()
     f = tempfile.NamedTemporaryFile()
     with self.assertRaises(ValueError):
       entity.download(f.name)
   
   # Load / dump
   def test_from_gtfs(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     self._sanity(entity)
     # Check operators...
     assert len(entity.operators()) == 1
@@ -258,47 +262,47 @@ class TestOnestopFeed(unittest.TestCase):
 
   # Graph
   def test_operators(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     assert len(entity.operators()) == len(self.expect['operatorsInFeed'])
 
   def test_operator(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     for i in self.expect['operatorsInFeed']:
       assert entity.operator(i['onestopId'])
     with self.assertRaises(ValueError):
       entity.operator('none')
 
   def test_operatorsInFeed(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     o = entity.operatorsInFeed()
     assert len(o) == 1
     assert 'o-9qs-demotransitauthority' in o
     
   def test_routes(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     routes = entity.routes()
     assert len(routes) == 5
 
   def test_route(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     for i in entity.routes():
       assert entity.route(i.onestop())
     with self.assertRaises(ValueError):
       entity.route('none')
     
   def test_stops(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     stops = entity.stops()
     assert len(stops) == 9
 
   def test_stop(self):
-    entity = example_onestopfeed()
+    entity = example_feed()
     for i in entity.stops():
       assert entity.stop(i.onestop())
     with self.assertRaises(ValueError):
       entity.stop('none')
     
-class TestOnestopOperator(unittest.TestCase):
+class TestOperator(unittest.TestCase):
   expect = {
     'geometry': {'coordinates': [[[-117.133162, 36.425288],
                                    [-116.40094, 36.641496],
@@ -344,55 +348,55 @@ class TestOnestopOperator(unittest.TestCase):
       assert len(i.identifiers()) == 1    
 
   def test_init(self):
-    entity = entities.OnestopOperator()
+    entity = entities.Operator()
       
   def test_geohash(self):
-    entity = example_onestopfeed().operator(self.expect['onestopId'])
+    entity = example_feed().operator(self.expect['onestopId'])
     assert entity.geohash() == '9qs'
   
   def test_from_gtfs(self):
-    feed = mzgtfs.feed.Feed(util.example_feed())
+    feed = mzgtfs.feed.Feed(util.example_gtfs_feed_path())
     agency = feed.agency('DTA')
     agency.preload()
-    entity = entities.OnestopOperator.from_gtfs(agency)
+    entity = entities.Operator.from_gtfs(agency)
     self._sanity(entity)
     
   def test_from_json(self):
-    feed = example_onestopfeed()
-    entity = example_onestopfeed().operator(self.expect['onestopId'])
-    roundtrip = entities.OnestopOperator.from_json(entity.json())
+    feed = example_feed()
+    entity = example_feed().operator(self.expect['onestopId'])
+    roundtrip = entities.Operator.from_json(entity.json())
     self._sanity(roundtrip)
   
   def test_json(self):
-    entity = example_onestopfeed().operator(self.expect['onestopId'])
+    entity = example_feed().operator(self.expect['onestopId'])
     data = entity.json()
     for k in ['name','onestopId','type']:
       assert data[k] == self.expect[k]
     assert len(data['features']) == 14
   
   def test_routes(self): 
-    entity = example_onestopfeed().operator(self.expect['onestopId'])
+    entity = example_feed().operator(self.expect['onestopId'])
     assert len(entity.routes()) == 5
 
   def test_route(self):
-    entity = example_onestopfeed().operator(self.expect['onestopId'])
+    entity = example_feed().operator(self.expect['onestopId'])
     for i in entity.routes():
       assert entity.route(i.onestop())
     with self.assertRaises(ValueError):
       entity.route('none')
 
   def test_stops(self): 
-    entity = example_onestopfeed().operator(self.expect['onestopId'])
+    entity = example_feed().operator(self.expect['onestopId'])
     assert len(entity.stops()) == 9
     
   def test_stop(self):
-    entity = example_onestopfeed().operator(self.expect['onestopId'])
+    entity = example_feed().operator(self.expect['onestopId'])
     for i in entity.stops():
       assert entity.stop(i.onestop())
     with self.assertRaises(ValueError):
       entity.stop('none')
 
-class TestOnestopRoute(unittest.TestCase):
+class TestRoute(unittest.TestCase):
   expect = {
     'geometry': {'coordinates': [[[-116.751677, 36.915682],
                                    [-116.761472, 36.914944],
@@ -420,14 +424,14 @@ class TestOnestopRoute(unittest.TestCase):
  }
   
   def test_init(self):
-    entity = entities.OnestopRoute()
+    entity = entities.Route()
     
   def test_geohash(self):    
-    entity = example_onestopfeed().route(self.expect['onestopId'])
+    entity = example_feed().route(self.expect['onestopId'])
     assert entity.geohash() == '9qsczp'
     
   def test_json(self):
-    entity = example_onestopfeed().route(self.expect['onestopId'])
+    entity = example_feed().route(self.expect['onestopId'])
     data = entity.json()
     for k in ['name','onestopId','type']:
       assert data[k] == self.expect[k]
@@ -440,28 +444,28 @@ class TestOnestopRoute(unittest.TestCase):
     # assert data['identifiers'][0]['identifier'] == 'f-0-unknown-r-CITY'
   
   def test_operators(self):
-    entity = example_onestopfeed().route(self.expect['onestopId'])
+    entity = example_feed().route(self.expect['onestopId'])
     assert len(entity.operators()) == 1
     
   def test_operator(self):
-    entity = example_onestopfeed().route(self.expect['onestopId'])
+    entity = example_feed().route(self.expect['onestopId'])
     assert entity.operator(self.expect['operatedBy'])
   
   def test_stops(self):
-    entity = example_onestopfeed().route(self.expect['onestopId'])
+    entity = example_feed().route(self.expect['onestopId'])
     stops = entity.stops()
     assert len(stops) == 5
     for i in stops:
       assert i.onestop() in self.expect['serves']
   
   def test_stop(self):
-    entity = example_onestopfeed().route(self.expect['onestopId'])
+    entity = example_feed().route(self.expect['onestopId'])
     print "test_stop:", self.expect['serves']
     print [i.onestop() for i in entity.stops()]
     for i in self.expect['serves']:
       assert entity.stop(i)
     
-class TestOnestopStop(unittest.TestCase):
+class TestStop(unittest.TestCase):
   expect = {
     'geometry': {'coordinates': [-116.76821, 36.914893], 'type': 'Point'},
     'identifiers': ['gtfs://unknown/s/NADAV'],
@@ -474,10 +478,10 @@ class TestOnestopStop(unittest.TestCase):
   }
 
   def test_init(self):
-    entity = entities.OnestopStop()
+    entity = entities.Stop()
     
   def test_mangle(self):
-    entity = entities.OnestopStop(**self.expect)
+    entity = entities.Stop(**self.expect)
     assert entity.mangle('Test Street') == 'test'
     assert entity.mangle('Test St') == 'test'
     assert entity.mangle('Test St.') == 'test'
@@ -486,23 +490,23 @@ class TestOnestopStop(unittest.TestCase):
     assert entity.mangle('Test Ave.') == 'test'
   
   def test_geohash(self):
-    entity = example_onestopfeed().stop(self.expect['onestopId'])
+    entity = example_feed().stop(self.expect['onestopId'])
     assert entity.geohash() == '9qsfnb5uz6'
 
   def test_point(self):
-    entity = example_onestopfeed().stop(self.expect['onestopId'])
+    entity = example_feed().stop(self.expect['onestopId'])
     expect = [-116.76821, 36.914893]
     for i,j in zip(entity.point(), expect):
       self.assertAlmostEqual(i,j)
 
   def test_bbox(self):
-    entity = example_onestopfeed().stop(self.expect['onestopId'])
+    entity = example_feed().stop(self.expect['onestopId'])
     expect = [-116.76821, 36.914893, -116.76821, 36.914893]
     for i,j in zip(entity.bbox(), expect):
       self.assertAlmostEqual(i,j)
       
   def test_json(self):
-    entity = example_onestopfeed().stop(self.expect['onestopId'])
+    entity = example_feed().stop(self.expect['onestopId'])
     data = entity.json()
     for k in ['name','onestopId','type']:
       assert data[k] == self.expect[k]
@@ -515,10 +519,10 @@ class TestOnestopStop(unittest.TestCase):
     # assert data['identifiers'][0]['identifier'] == 'f-0-unknown-s-NADAV'
   
   def test_operators(self):
-    entity = example_onestopfeed().stop(self.expect['onestopId'])
+    entity = example_feed().stop(self.expect['onestopId'])
     assert len(entity.operators()) == len(self.expect['servedBy'])
 
   def test_operator(self):
-    entity = example_onestopfeed().stop(self.expect['onestopId'])
+    entity = example_feed().stop(self.expect['onestopId'])
     for i in self.expect['servedBy']:
       assert entity.operator(i)

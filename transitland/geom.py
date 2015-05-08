@@ -8,7 +8,7 @@ def geohash_features(features):
   # Filter stops without valid coordinates...
   points = [feature.point() for feature in features if feature.point()]
   if not points:
-    raise errors.OnestopNoPoints("Not enough points.")
+    raise errors.NoPointsError("Not enough points.")
   c = centroid(points)
   return mzgeohash.neighborsfit(c, points)
   

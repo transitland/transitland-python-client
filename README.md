@@ -1,18 +1,16 @@
-# Onestop-ID Registry Python Client
+# Transitland Python Client
 
-[![Circle CI](https://circleci.com/gh/transitland/onestop-id-python-client.png?style=badge)](https://circleci.com/gh/transitland/onestop-id-python-client)
-
-This is a Python client for the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
+[![Circle CI](https://circleci.com/gh/transitland/transitland-python-client.png?style=badge)](https://circleci.com/gh/transitland/transitland-python-client)
 
 ## Installation
 
 Installation using pip:
 
 ```
-pip install onestop
+pip install transitland
 ```
 
-Alternatively, [download from PyPi](https://pypi.python.org/pypi/onestop) or clone this repository, and install using setup.py:
+Alternatively, [download from PyPi](https://pypi.python.org/pypi/transitland) or clone this repository, and install using setup.py:
 
 ```
 python ./setup.py install
@@ -21,19 +19,19 @@ python ./setup.py install
 The dependencies [mzgeohash](https://github.com/transitland/mapzen-geohash) and [mzgtfs](https://github.com/transitland/mapzen-gtfs) will be automatically installed using the above methods.
 
 
-## Opening the Onestop ID Registry
+## Opening the Transitland Feed Registry
 
-First, make sure you have a copy of the current Onestop ID Registry. This can be accomplished through a git clone:
-
-```
-git clone https://github.com/transitland/onestop-id-registry.git
-```
-
-Then, create a registry reader with onestop.registry.OnestopRegistry, passing the path to the registry as the argument.
+First, make sure you have a copy of the current Transitland Feed Registry. This can be accomplished through a git clone:
 
 ```
->>> import onestop.registry
->>> registry = onestop.registry.OnestopRegistry('.')
+git clone https://github.com/transitland/transitland-feed-registry.git
+```
+
+Then, create a registry reader with transitland.registry.FeedRegistry, passing the path to the registry as the argument.
+
+```
+>>> import transitland.registry
+>>> registry = transitland.registry.FeedRegistry('.')
 ```
 
 You can now list the known feeds:
@@ -45,7 +43,7 @@ You can now list the known feeds:
 
 ## Working with a feed
 
-A specific feed can be read with OnestopRegistry.feed(). The resulting OnestopFeed can be used to inspect the feed attributes, download the current version of the feed, etc.
+A specific feed can be read with FeedRegistry.feed(). The resulting Feed can be used to inspect the feed attributes, download the current version of the feed, etc.
 
 ```
 >>> feed = registry.feed('f-9q9-caltrain')
@@ -58,17 +56,17 @@ A specific feed can be read with OnestopRegistry.feed(). The resulting OnestopFe
 
 ## Download current GTFS feeds
 
-The current versions of GTFS feeds can be downloaded to the current directory using onestop.fetch:
+The current versions of GTFS feeds can be downloaded to the current directory using transitland.fetch:
 
 ```
-$ python -m onestop.fetch f-9q9-caltrain
+$ python -m transitland.fetch f-9q9-caltrain
 Downloading: http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip -> f-9q9-caltrain.zip
 ```
 
 The "--all" option can also be used to download all feeds in the registry. Only updated feeds will be downloaded:
 
 ```
-$ python -m onestop.fetch --all
+$ python -m transitland.fetch --all
 Downloading: http://developer.metro.net/gtfs/google_transit.zip -> f-9q5-lacmta.zip
 Downloading: http://www.samtrans.com/Assets/GTFS/samtrans/SamTrans-GTFS.zip -> f-9q8-samtrans.zip
 Downloading: http://archives.sfmta.com/transitdata/google_transit.zip -> f-9q8y-sanfranciscomunicipaltransportationagency.zip
@@ -77,10 +75,10 @@ Downloading: http://archives.sfmta.com/transitdata/google_transit.zip -> f-9q8y-
 
 ## Bootstrapping a feed from a GTFS source
 
-A Onestop Feed can be created from a GTFS url with onestop.bootstrap. Specify the URL with "--url" and the feed name with "--feedname":
+A Feed can be created from a GTFS url with transitland.bootstrap. Specify the URL with "--url" and the feed name with "--feedname":
 
 ```
-$ python -m onestop.bootstrap --url http://developer.trimet.org/schedule/gtfs.zip --feedname trimet
+$ python -m transitland.bootstrap --url http://developer.trimet.org/schedule/gtfs.zip --feedname trimet
 Attempting to bootstrap feed from GTFS file...
 Downloading: http://developer.trimet.org/schedule/gtfs.zip -> ./data/trimet-bootstrap.zip
 Loading feed: trimet-bootstrap
@@ -114,7 +112,7 @@ A basic feed description will be written to the feeds directory that can then be
 
 ## Contributing
 
-Please [open a Github issue](https://github.com/transitland/onestop-id-python-client/issues/new) with as much of the following information as yo're able to specify, or [contact us](#contact) for assistance.
+Please [open a Github issue](https://github.com/transitland/transitland-python-client/issues/new) with as much of the following information as yo're able to specify, or [contact us](#contact) for assistance.
 
 ## License
 
