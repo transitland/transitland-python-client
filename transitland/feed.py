@@ -1,6 +1,4 @@
 """Feed Entity."""
-import mzgtfs.util
-
 import geom
 import util
 import errors
@@ -73,7 +71,7 @@ class Feed(Entity):
   
   def operator(self, onestop_id):
     """Return a single operator by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.operators(), onestop=onestop_id)
+    return util.filtfirst(self.operators(), onestop=onestop_id)
   
   def routes(self):
     routes = set()
@@ -83,7 +81,7 @@ class Feed(Entity):
 
   def route(self, onestop_id):
     """Return a single route by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.routes(), onestop=onestop_id)
+    return util.filtfirst(self.routes(), onestop=onestop_id)
   
   def stops(self):
     stops = set()
@@ -93,4 +91,4 @@ class Feed(Entity):
 
   def stop(self, onestop_id):
     """Return a single stop by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.stops(), onestop=onestop_id)
+    return util.filtfirst(self.stops(), onestop=onestop_id)

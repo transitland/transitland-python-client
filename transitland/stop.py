@@ -1,6 +1,5 @@
 """Stop Entity."""
 import mzgeohash
-import mzgtfs.util
 
 import geom
 import util
@@ -56,4 +55,4 @@ class Stop(Entity):
 
   def operator(self, onestop_id):
     """Return a single operator by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.operators(), onestop=onestop_id)
+    return util.filtfirst(self.operators(), onestop=onestop_id)

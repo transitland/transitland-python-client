@@ -1,8 +1,6 @@
 """Base Transitland Entity."""
 import json
 
-import mzgtfs.feed
-import mzgtfs.util
 import mzgeohash
 
 import geom

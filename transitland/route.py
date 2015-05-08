@@ -2,9 +2,6 @@
 import geom
 import util
 import errors
-
-import mzgtfs.util
-
 from entity import Entity
 
 class Route(Entity):
@@ -46,11 +43,11 @@ class Route(Entity):
 
   def operator(self, onestop_id):
     """Return a single operator by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.operators(), onestop=onestop_id)
+    return util.filtfirst(self.operators(), onestop=onestop_id)
 
   def stops(self):
     return set(self.children) # copy
 
   def stop(self, onestop_id):
     """Return a single stop by Onestop ID."""
-    return mzgtfs.util.filtfirst(self.stops(), onestop=onestop_id)
+    return util.filtfirst(self.stops(), onestop=onestop_id)

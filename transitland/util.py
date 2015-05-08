@@ -48,6 +48,31 @@ REPLACE_ABBR = [
 ]
 REPLACE_ABBR = [[re.compile(r'\b%s\b'%i), ''] for i in REPLACE_ABBR]
 
+# Copied from mzgtfs.util
+def filtany(entities, **kw):
+  """Filter a set of entities based on method return. Use keyword arguments.
+  
+  Example:
+    filtany(entities, id='123')
+    filtany(entities, name='bart')
+
+  Multiple filters are 'OR'.
+  """
+  ret = set()
+  for k,v in kw.items():
+    for entity in entities:
+      if getattr(entity, k)() == v:
+        ret.add(entity)
+  return ret
+
+# Copied from mzgtfs.util
+def filtfirst(entities, **kw):
+  """Return the first matching entity, sorted by id()."""
+  ret = sorted(filtany(entities, **kw), key=lambda x:x.id())
+  if not ret:
+    raise ValueError('No result')
+  return ret[0]
+
 def printf(msg):
   print msg
 
@@ -106,3 +131,18 @@ def example_gtfs_feed_path(feed='f-9qs-dta.zip'):
     'data',
     feed
     )
+
+def example_gtfs_feed(*args, **kw):
+  import mzgtfs.feed
+  a = mzgtfs.feed.Feed(
+    example_gtfs_feed_path(*args, **kw)
+  )
+  return a
+
+def example_feed():
+  import feed
+  return feed.Feed.from_gtfs(
+    example_gtfs_feed(), 
+    name='test'
+  )
+
