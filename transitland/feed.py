@@ -1,4 +1,6 @@
 """Feed Entity."""
+import os
+
 import geom
 import util
 import errors
@@ -20,14 +22,22 @@ class Feed(Entity):
     return self.data.get('feedFormat', 'gtfs')
   
   # Download the latest feed.
-  def download(self, filename=None, debug=False):
-    """Download the GTFS feed to a file. Return True if updated."""
-    return util.download(
-      self.url(), 
-      filename or self.filename(), 
-      sha1=self.sha1(), 
-      debug=debug
-    )
+  def download_check_cache(self, filename=None, sha1=None):
+    """Check if a file is validly cached."""
+    filename = filename or self.filename()
+    sha1 = sha1 or self.sha1()
+    if os.path.exists(filename):
+      if sha1 and util.sha1file(filename) == sha1:
+        return True
+    return False
+
+  def download(self, filename=None, cache=True):
+    """Download the GTFS feed to a file. Return filename."""
+    filename = filename or self.filename()
+    if cache and self.download_check_cache(filename):
+      return filename
+    util.download(self.url(), filename)
+    return filename
 
   def filename(self):
     return '%s.zip'%self.onestop()
