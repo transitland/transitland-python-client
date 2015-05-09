@@ -1,5 +1,6 @@
 """Test Feed."""
 import unittest
+import os
 import tempfile
 
 import util
@@ -18,6 +19,9 @@ class TestFeed(unittest.TestCase):
     'tags': {},
     'url': None
   }
+  
+  url = 'file://%s'%os.path.abspath(util.example_gtfs_feed_path())
+  sha1 = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
   
   def _sanity(self, entity):
     """Sanity check after load from_json() / from_gtfs()"""
@@ -105,12 +109,36 @@ class TestFeed(unittest.TestCase):
     assert entity.feedFormat() == self.expect['feedFormat']    
   
   # Test fetching...
-  def test_download(self):
-    # TODO: feed doesn't have url...
+  def test_download_no_url(self):
     entity = util.example_feed()
     f = tempfile.NamedTemporaryFile()
     with self.assertRaises(ValueError):
       entity.download(f.name)
+  
+  def test_download(self):
+    # Download the file, then download again to verify cache.
+    f = tempfile.NamedTemporaryFile(delete=False)
+    f.close()
+    entity = util.example_feed()
+    entity.data['url'] = self.url
+    entity.data['sha1'] = self.sha1
+    entity.download(f.name, cache=False)
+    assert util.sha1file(f.name) == entity.sha1()
+    entity.download(f.name)
+    assert util.sha1file(f.name) == entity.sha1()
+    os.unlink(f.name)
+
+  def test_download_badsha1(self):
+    f = tempfile.NamedTemporaryFile(delete=False)
+    f.write('asdf')
+    f.close()
+    assert util.sha1file(f.name) != self.sha1
+    entity = util.example_feed()
+    entity.data['url'] = self.url
+    entity.data['sha1'] = self.sha1
+    entity.download(f.name)
+    assert util.sha1file(f.name) == entity.sha1()
+    os.unlink(f.name)
   
   # Load / dump
   def test_from_gtfs(self):

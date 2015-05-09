@@ -93,10 +93,7 @@ if __name__ == "__main__":
     elif url:
       filename = util.download(
         url, 
-        os.path.join(args.output, 'data', '%s.zip'%feedid),
-        sha1=sha1,
-        cache=cache,
-        debug=True
+        os.path.join(args.output, 'data', '%s.zip'%feedid)
       )
     else:
       raise Exception("No filename or url provided.")
