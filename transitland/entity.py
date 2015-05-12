@@ -85,7 +85,7 @@ class Entity(object):
     """Return a GeoJSON representation for the Transitland Datastore."""
     # Todo: Longer discussion on formats...
     data = self.json()
-    skip = ['features', 'identifiers']
+    skip = ['features']
     if not rels:
       skip += [
         'serves', 
