@@ -22,25 +22,25 @@ class Feed(Entity):
     return self.data.get('feedFormat', 'gtfs')
   
   # Download the latest feed.
-  def download_check_cache(self, filename=None, sha1=None):
+  def verify_sha1(self, filename, sha1=None):
     """Check if a file is validly cached."""
-    filename = filename or self.filename()
     sha1 = sha1 or self.sha1()
     if os.path.exists(filename):
       if sha1 and util.sha1file(filename) == sha1:
         return True
     return False
 
-  def download(self, filename=None, cache=True):
+  def download(self, filename, cache=True, verify=True):
     """Download the GTFS feed to a file. Return filename."""
-    filename = filename or self.filename()
-    if cache and self.download_check_cache(filename):
+    if cache and self.verify_sha1(filename):
       return filename
     util.download(self.url(), filename)
+    if verify and not self.verify_sha1(filename):
+      raise errors.InvalidChecksumError("Incorrect SHA1 Checksum: %s, expected %s"%(
+        util.sha1file(filename),
+        self.sha1()
+      ))
     return filename
-
-  def filename(self):
-    return '%s.zip'%self.onestop()
 
   # Load / dump
   @classmethod
@@ -55,7 +55,7 @@ class Feed(Entity):
       oagency = Operator.from_gtfs(agency, feedid=feedid, debug=debug)
       feed.add_child(oagency)
     return feed
-  
+    
   def json(self):
     return {
       "onestopId": self.onestop(),
