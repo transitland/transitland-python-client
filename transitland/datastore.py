@@ -64,34 +64,18 @@ class Datastore(object):
     endpoint = '%s/api/v1/changesets/'%(self.endpoint)
     self.postjson(endpoint, data)
 
-  def update_operator(self, operator):
-    # Entities to post.
-    entities = operator.stops() # | operator.routes()
-    # Note: Agencies must be created before routes/stops.
-    # Post without relationships
-    self.update_entity(operator, rels=False)
-    for entity in entities:
-      self.update_entity(entity, rels=False)
-    # Update relationships
-    self.update_entity(operator)
-    for entity in entities:
-      self.update_entity(entity)
-
-  def search_entity(self, entity, radius=1000):
-    point = entity.point()
-    endpoint = '%s/api/v1/stops?lon=%0.8f&lat=%0.8f&r=%d'%(
-      self.endpoint, 
-      point[0], 
-      point[1],
-      radius
-    )
-    response = self.getjson(endpoint)
-    search_entities = set()
-    for i in response['stops']:
-      e = entities.Stop(
-        name=i['name'],
-        geometry=i['geometry'],
-        onestop_id=i['onestopId']
+  def stops(self, point=None, radius=1000):
+    endpoint = '%s/api/v1/stops'%(self.endpoint)
+    if point:
+      endpoint = '%s/api/v1/stops?lon=%0.8f&lat=%0.8f&r=%d'%(
+        self.endpoint, 
+        point[0], 
+        point[1],
+        radius
       )
-      search_entities.add(e)
-    return search_entities
+    response = self.getjson(endpoint)
+    stops = set()
+    for i in response['stops']:
+      e = entities.Stop.from_json(i)
+      stops.add(e)
+    return stops
