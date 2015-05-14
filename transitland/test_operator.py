@@ -58,8 +58,8 @@ class TestOperator(unittest.TestCase):
   
   def test_from_gtfs(self):
     feed = util.example_gtfs_feed()
+    feed.preload()
     agency = feed.agency('DTA')
-    agency.preload()
     entity = Operator.from_gtfs(agency)
     self._sanity(entity)
     
