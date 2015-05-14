@@ -44,14 +44,18 @@ class Feed(Entity):
 
   # Load / dump
   @classmethod
-  def from_gtfs(cls, gtfsfeed, feedid='f-0-unknown', debug=False, **kw):
-    gtfsfeed.preload()
+  def from_gtfs(cls, gtfs_feed, feedid='f-0-unknown', debug=False, **kw):
+    # Backwards compat.
+    try:
+      gtfs_feed.preload()
+    except AttributeError, e:
+      pass
     # Create feed
-    kw['sha1'] = util.sha1file(gtfsfeed.filename)
-    kw['geohash'] = geom.geohash_features(gtfsfeed.stops())
+    kw['sha1'] = util.sha1file(gtfs_feed.filename)
+    kw['geohash'] = geom.geohash_features(gtfs_feed.stops())
     feed = cls(**kw)
     # Load and display information about agencies
-    for agency in gtfsfeed.agencies():
+    for agency in gtfs_feed.agencies():
       oagency = Operator.from_gtfs(agency, feedid=feedid, debug=debug)
       feed.add_child(oagency)
     return feed

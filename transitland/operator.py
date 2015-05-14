@@ -30,6 +30,11 @@ class Operator(Entity):
   @classmethod
   def from_gtfs(cls, gtfs_agency, feedid='f-0-unknown', debug=False):
     """Create Operator from a GTFS Agency."""
+    # Backwards compat.
+    try:
+      gtfs_agency.preload()
+    except AttributeError, e:
+      pass
     route_counter = collections.defaultdict(int)
     agency = cls(
       name=gtfs_agency.name(),
