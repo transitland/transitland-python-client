@@ -45,13 +45,13 @@ class Feed(Entity):
   # Load / dump
   @classmethod
   def from_gtfs(cls, gtfsfeed, feedid='f-0-unknown', debug=False, **kw):
+    gtfsfeed.preload()
     # Create feed
     kw['sha1'] = util.sha1file(gtfsfeed.filename)
     kw['geohash'] = geom.geohash_features(gtfsfeed.stops())
     feed = cls(**kw)
     # Load and display information about agencies
     for agency in gtfsfeed.agencies():
-      agency.preload()
       oagency = Operator.from_gtfs(agency, feedid=feedid, debug=debug)
       feed.add_child(oagency)
     return feed
