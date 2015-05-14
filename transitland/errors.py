@@ -8,3 +8,6 @@ class NoPointsError(ValueError):
   
 class InvalidFeedRegistryError(ValueError):
   pass
+  
+class InvalidChecksumError(ValueError):
+  pass

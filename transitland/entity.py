@@ -85,7 +85,7 @@ class Entity(object):
     """Return a GeoJSON representation for the Transitland Datastore."""
     # Todo: Longer discussion on formats...
     data = self.json()
-    skip = ['features', 'identifiers']
+    skip = ['features']
     if not rels:
       skip += [
         'serves', 
@@ -100,7 +100,9 @@ class Entity(object):
 
   # Tags and identifiers
   def tags(self):
-    return self.data.get('tags') or {}
+    if 'tags' not in self.data:
+      self.data['tags'] = {}
+    return self.data.get('tags')
 
   def identifiers(self):
     return self.data.get('identifiers') or []
@@ -139,6 +141,9 @@ class Entity(object):
       self.data['name'] = item.data['name']
     if 'geometry' in item.data:
       self.data['geometry'] = item.data['geometry']
+    # merge tags
+    for k,v in item.tags().items():
+      self.set_tag(k,v)
     # merge relations
     relkeys = ['serves', 'servedBy', 'operatedBy', 'operatorsInFeed']
     for relkey in relkeys:
