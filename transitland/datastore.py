@@ -64,8 +64,13 @@ class Datastore(object):
     endpoint = '%s/api/v1/changesets/'%(self.endpoint)
     self.postjson(endpoint, data)
 
-  def stops(self, point=None, radius=1000):
+  def stops(self, point=None, radius=1000, identifier=None):
     endpoint = '%s/api/v1/stops'%(self.endpoint)
+    if identifier:
+      endpoint = '%s/api/v1/stops?identifier=%s'%(
+        self.endpoint,
+        identifier
+      )
     if point:
       endpoint = '%s/api/v1/stops?lon=%0.8f&lat=%0.8f&r=%d'%(
         self.endpoint, 
