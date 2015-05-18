@@ -85,6 +85,7 @@ class Operator(Entity):
       route.add_tags(i.data._asdict())
       routes[key] = route
     # Return agency
+    agency._cache_onestop()
     return agency
 
   @classmethod
