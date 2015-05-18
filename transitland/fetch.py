@@ -2,6 +2,7 @@
 import argparse
 
 import registry
+import util
 
 def run():
   parser = argparse.ArgumentParser(description='Fetch Transitland Feeds')
@@ -20,7 +21,11 @@ def run():
     raise Exception("No feeds specified! Try --all")
   for feedid in feedids:
     feed = r.feed(feedid)
-    feed.download(debug=args.verbose)
-    
+    filename = '%s.zip'%feed.onestop()
+    print "Downloading: %s -> %s"%(feed.url(), filename)
+    feed.download(filename, verify=False)
+    if not feed.verify_sha1(filename):
+      print """Warning: Incorrect SHA1 checksum. Feed Registry may be out of date."""
+
 if __name__ == "__main__":
   run()

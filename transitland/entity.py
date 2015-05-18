@@ -100,7 +100,7 @@ class Entity(object):
 
   # Tags and identifiers
   def tags(self):
-    if 'tags' not in self.data:
+    if not self.data.get('tags'):
       self.data['tags'] = {}
     return self.data.get('tags')
 
@@ -111,13 +111,13 @@ class Entity(object):
     self.add_tags({key:value})
 
   def add_tags(self, tags):
-    if 'tags' not in self.data:
+    if not self.data.get('tags'):
       self.data['tags'] = {}
     self.data['tags'].update(tags)
 
   def add_identifier(self, identifier):
     """Add GTFS data to the set of identifiers."""
-    if 'identifiers' not in self.data:
+    if not self.data.get('identifiers'):
       self.data['identifiers'] = []
     if identifier in self.data['identifiers']:
       raise errors.ExistingIdentifierError(
