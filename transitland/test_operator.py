@@ -5,30 +5,8 @@ import util
 from operator import Operator
 
 class TestOperator(unittest.TestCase):
-  expect = {
-    'geometry': {'coordinates': [[[-117.133162, 36.425288],
-                                   [-116.40094, 36.641496],
-                                   [-116.751677, 36.915682],
-                                   [-116.76821, 36.914893],
-                                   [-116.81797, 36.88108],
-                                   [-117.133162, 36.425288]]],
-                 'type': 'Polygon'},
-   'identifiers': ['gtfs://unknown/o/DTA'],
-   'name': 'Demo Transit Authority',
-   'onestopId': 'o-9qs-demotransitauthority',
-   'properties': {},
-   'serves': ['s-9qscv9zzb5-bullfrogdemo',
-               's-9qt0rnrkjt-amargosavalleydemo',
-               's-9qscwx8n60-nyecountyairportdemo',
-               's-9qkxnx40xt-furnacecreekresortdemo',
-               's-9qscyz5vqg-doing~dndemo',
-               's-9qsfp2212t-stagecoachhotel~casinodemo',
-               's-9qsfp00vhs-north~nademo',
-               's-9qsfnb5uz6-north~dndemo',
-               's-9qsczn2rk0-emain~sirvingdemo'],
-   'tags': {},
-   'type': 'FeatureCollection'
-  }
+  def setUp(self):
+    self.expect = util.example_export()
   
   def _sanity(self, entity):
     """Perform sanity checks! After from_gtfs or from_json..."""
@@ -55,20 +33,6 @@ class TestOperator(unittest.TestCase):
   def test_geohash(self):
     entity = util.example_feed().operator(self.expect['onestopId'])
     assert entity.geohash() == '9qs'
-  
-  def test_from_gtfs(self):
-    feed = util.example_gtfs_feed()
-    try:
-      feed.preload()
-    except AttributeError, e:
-      pass
-    agency = feed.agency('DTA')
-    try:
-      agency.preload()
-    except AttributeError, e:
-      pass
-    entity = Operator.from_gtfs(agency)
-    self._sanity(entity)
     
   def test_from_json(self):
     feed = util.example_feed()
