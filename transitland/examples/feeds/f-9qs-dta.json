@@ -3,7 +3,10 @@
     "name": "dta",
     "onestopId": "f-9qs-dta",
     "operatorsInFeed": [
-        "o-9qs-demotransitauthority"
+      {
+				"gtfsAgencyId": "demotransitauthority",
+				"onestopId": "o-9qs-demotransitauthority"
+			}
     ],
     "sha1": "4e5e6a2668d12cca29c89a969d73e05e625d9596",
     "tags": {},
