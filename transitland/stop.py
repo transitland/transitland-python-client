@@ -10,15 +10,6 @@ class Stop(Entity):
   """Transitland Stop Entity."""
   onestop_type = 's'
   
-  def mangle(self,s):
-    """Also replace common road abbreviations."""
-    s = s.lower()
-    for a,b in util.REPLACE_ABBR:
-      s = a.sub(b,s)
-    for a,b in util.REPLACE_CHAR:
-      s = a.sub(b,s)
-    return s
-
   def geohash(self):
     """Return 10 characters of geohash."""
     return mzgeohash.encode(self.point())

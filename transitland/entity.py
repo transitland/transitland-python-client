@@ -47,7 +47,8 @@ class Entity(object):
     s = s.lower()
     for a,b in util.REPLACE_CHAR:
       s = a.sub(b,s)
-    return s    
+    s = s.strip() 
+    return s
 
   # Entity geometry.
   def geohash(self):
