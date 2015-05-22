@@ -2,26 +2,18 @@
 import unittest
 import os
 import tempfile
+import json
 
 import util
 from feed import Feed
 
 class TestFeed(unittest.TestCase):
-  expect = {
-    'feedFormat': 'gtfs',
-    'name': 'test',
-    'onestopId': 'f-9qs-test',
-    'operatorsInFeed': [
-      {'gtfsAgencyId': 'demotransitauthority',
-      'onestopId': 'o-9qs-demotransitauthority'}
-    ],
-    'sha1': '4e5e6a2668d12cca29c89a969d73e05e625d9596',
-    'tags': {},
-    'url': None
-  }
-  
-  url = 'file://%s'%os.path.abspath(util.example_gtfs_feed_path())
-  sha1 = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
+  def setUp(self):
+    filename = os.path.join(util.example_registry(), 'feeds', 'f-9qs-dta.json')
+    with open(filename) as f:
+      self.expect = json.load(f)
+    self.url = 'file://%s'%os.path.abspath(util.example_gtfs_feed_path())
+    self.sha1 = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
   
   def _sanity(self, entity):
     """Sanity check after load from_json() / from_gtfs()"""

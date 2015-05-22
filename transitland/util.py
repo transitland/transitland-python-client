@@ -11,40 +11,42 @@ GEOHASH_LENGTH = 10
 # Regexes
 REPLACE_CHAR = [
   # replace &, @, and / with ~
-  [r':','~'], 
-  [r'&','~'], 
-  [r'@','~'],
-  [r'\/','~'],
+  [r'[\-\:\&\@\/]+','~'], 
+  # [r' - ','~'], 
   # replace every other special char
   [r'[^~0-9a-zA-Z]+', '']
 ]
 REPLACE_CHAR = [[re.compile(i[0]), i[1]] for i in REPLACE_CHAR]
 
 REPLACE_ABBR = [
-  'street', 
-  'st',
-  'sts',
-  'ctr',
+  'alley',
+  'avenue',
+  'ave',
+  'av',
+  'boulevard',
+  'blvd',
   'center',
+  'ctr',
   'drive',
   'dr',
-  'ave', 
-  'avenue', 
-  'av',
-  'boulevard', 
-  'blvd', 
-  'road', 
-  'rd', 
-  'alley', 
-  'aly', 
-  'way', 
-  'parkway', 
-  'pkwy', 
+  'expressway',
+  'expw',
+  'expy',
+  'freeway',
+  'fwy',
+  'highway',
+  'hwy',
   'lane',
   'ln',
-  'hwy',
-  'court',
-  'ct',
+  'parkway',
+  'pkwy',
+  'road',
+  'rd',
+  'street',
+  'st',
+  'streets',
+  'sts',
+  'way'
 ]
 REPLACE_ABBR = [[re.compile(r'\b%s\b'%i), ''] for i in REPLACE_ABBR]
 
@@ -83,6 +85,14 @@ def download(url, filename):
   if not filename:
     raise ValueError("No local output filename given.")  
   urllib.urlretrieve(url, filename)
+
+def json_print_pretty(data):
+  print json.dumps(
+    data,
+    sort_keys=True,
+    indent=4,
+    separators=(',', ': ')
+  )
 
 def json_dump_pretty(data, f):
   json.dump(
@@ -128,6 +138,16 @@ def example_feed():
   import feed
   return feed.Feed.from_gtfs(
     example_gtfs_feed(), 
-    name='test'
+    name='dta'
   )
 
+def example_export():
+  filename = os.path.join(
+    os.path.dirname(__file__), 
+    'examples',
+    'dta.json'
+  )
+  data = {}
+  with open(filename) as f:
+    data = json.load(f)
+  return data

@@ -5,42 +5,38 @@ import util
 from stop import Stop
 
 class TestStop(unittest.TestCase):
-  expect = {
-    'geometry': {'coordinates': [-116.76821, 36.914893], 'type': 'Point'},
-    'identifiers': ['gtfs://unknown/s/NADAV'],
-    'name': 'North Ave / D Ave N (Demo)',
-    'onestopId': 's-9qsfnb5uz6-north~dndemo',
-    'properties': {},
-    'servedBy': ['o-9qs-demotransitauthority'],
-    'tags': {},
-    'type': 'Feature'
-  }
+  def setUp(self):
+    data = util.example_export()
+    name = 's-9qscv9zzb5-bullfrogdemo'
+    feature = [i for i in data['features'] if i['onestopId'] == name]
+    assert len(feature) == 1
+    self.expect = feature[0]
 
   def test_init(self):
     entity = Stop()
     
-  def test_mangle(self):
-    entity = Stop(**self.expect)
-    assert entity.mangle('Test Street') == 'test'
-    assert entity.mangle('Test St') == 'test'
-    assert entity.mangle('Test St.') == 'test'
-    assert entity.mangle('Test Avenue') == 'test'
-    assert entity.mangle('Test Ave') == 'test'
-    assert entity.mangle('Test Ave.') == 'test'
+  # def test_mangle(self):
+  #   entity = Stop(**self.expect)
+  #   assert entity.mangle('Test Street') == 'test'
+  #   assert entity.mangle('Test St') == 'test'
+  #   assert entity.mangle('Test St.') == 'test'
+  #   assert entity.mangle('Test Avenue') == 'test'
+  #   assert entity.mangle('Test Ave') == 'test'
+  #   assert entity.mangle('Test Ave.') == 'test'
   
   def test_geohash(self):
     entity = util.example_feed().stop(self.expect['onestopId'])
-    assert entity.geohash()[:10] == '9qsfnb5uz6'
+    assert entity.geohash()[:10] == '9qscv9zzb5'
 
   def test_point(self):
     entity = util.example_feed().stop(self.expect['onestopId'])
-    expect = [-116.76821, 36.914893]
+    expect = (-116.81797, 36.88108)
     for i,j in zip(entity.point(), expect):
       self.assertAlmostEqual(i,j)
 
   def test_bbox(self):
     entity = util.example_feed().stop(self.expect['onestopId'])
-    expect = [-116.76821, 36.914893, -116.76821, 36.914893]
+    expect = [-116.81797, 36.88108, -116.81797, 36.88108]
     for i,j in zip(entity.bbox(), expect):
       self.assertAlmostEqual(i,j)
       
