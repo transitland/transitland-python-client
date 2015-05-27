@@ -3,7 +3,6 @@ import argparse
 import json
 import sys
 import os
-
 import tempfile
 import urllib
 
@@ -18,130 +17,55 @@ if __name__ == "__main__":
   parser = argparse.ArgumentParser(
     description='Create Transitland Feed Registry entry from GTFS.'
   )
-  parser.add_argument('feedids', nargs='*', help='Feed IDs')
-  parser.add_argument('--all', help='Update all feeds', action='store_true')
   parser.add_argument('--url', help='GTFS url')
   parser.add_argument('--filename', help='GTFS feed filename')
-  parser.add_argument('--feedname', help='Feed name, if generating from GTFS')
-  parser.add_argument('--registry', help='Transitland Feed Registry path')
-  parser.add_argument('--output', help='Output path', default='.')
-  parser.add_argument(
-    '--cache',
-    help='Feed cache setting. Allowed: force, ignore, cache (default)',
-    default='cache')
+  parser.add_argument('--feedname', help='Feed name')
+  parser.add_argument('--output', help='Output JSON filename')
   parser.add_argument(
     '--debug', 
     help='Show helpful debugging information', 
     action='store_true')
   args = parser.parse_args()
 
-  # Create dirs
-  for i in ['feeds', 'data']:
-    try:
-      os.makedirs(os.path.join(args.output, i))
-    except OSError, e:
-      pass
+  if not (args.url or args.filename):
+    raise Exception("Must specify either --filename or --url")
 
-  # Registry
-  r = registry.FeedRegistry(args.registry)
-
-  # Feeds to update
-  feedids = args.feedids
-  if args.all:
-    feedids = r.feeds()
-    
-  if feedids and (args.filename or args.url):
-    raise Exception("Cannot specify --filename or --url with Feed IDs")
+  # Download feed.
+  filename = args.filename
   if args.url:
-    feedids = [args.feedname]
-  if args.filename:
-    feedids = [args.feedname]
-  if len(feedids) == 0:
-    raise Exception("No feeds specified; try --all.")
+    print "Downloading: %s"%args.url
+    util.download(args.url)
 
-  for feedid in feedids:
-    # Load from registry, then update.
-    feed = {}
-    try:
-      f = r.feed(feedid)
-    except IOError, e:
-      print "Attempting to bootstrap feed from GTFS file..."
-      feed['name'] = args.feedname
-      feed['url'] = args.url
-    else:
-      feed['name'] = f.name()
-      feed['url'] = f.url()
-      feed['tags'] = f.tags()
-      feed['sha1'] = f.sha1()
+  # Everything is now ready to create the feed.
+  print "Loading feed:", filename
+  f = mzgtfs.feed.Feed(filename, debug=args.debug)
 
-    # Cache settings.
-    if args.cache == 'cache':
-      sha1 = feed.get('sha1')
-      cache = True
-    elif args.cache == 'force':
-      sha1 = None
-      cache = True
-    elif args.cache == 'ignore':
-      sha1 = None
-      cache = False
-      
-    # Download GTFS feed.
-    filename = args.filename
-    url = feed.get('url')
-    if args.filename:
-      pass
-    elif url:
-      filename = util.download(
-        url, 
-        os.path.join(args.output, 'data', '%s.zip'%feedid)
-      )
-    else:
-      raise Exception("No filename or url provided.")
-
-    # Everything is now ready to create the feed.
-    print "Loading feed:", filename
-    f = mzgtfs.feed.Feed(filename, debug=args.debug)
-    # If bootstrapping, update the feedid to include the geohash.
-    if args.feedname:
-      feedid = 'f-%s-%s'%(
-        geom.geohash_features(f.stops()),
-        args.feedname.lower().strip()
-      )
-    # Create Transitland Feed from GTFS.
-    feed = entities.Feed.from_gtfs(
-      f, 
-      debug=args.debug, 
-      name=feed.get('name'),
-      url=url,
-      tags=feed.get('tags'),
-      feedid=feedid
-    )
-    # Print basic feed information.
-    print "Feed:", feed.onestop()
-    print "  Operators:", len(feed.operators())
-    print "  Routes:", len(feed.routes())
-    print "  Stops:", len(feed.stops())
-
-    # Write out updated feed.
-    outfile = os.path.join(args.output, 'feeds', '%s.json'%feed.onestop())
-    # do this so file isn't emptied if there's an exception...
-    data = feed.json() 
-    with open(outfile, 'w') as f:
-      util.json_dump_pretty(data, f)
+  # Create Transitland Feed from GTFS.
+  kw = {}
+  kw['debug'] = args.debug
+  kw['url'] = args.url
+  if args.feedname:
+    # set the feedid with geohash
+    kw['feedid'] = 'f-0-%s'%(args.feedname.lower().strip())
+  feed = entities.Feed.from_gtfs(f, **kw)
   
-    # Print basic operator information.
-    for operator in feed.operators():
-      print "Operator:", operator.name()
-      print "  Routes:", len(operator.routes())
-      print "  Stops:", len(operator.stops())
-      # Write out updated operators.
-      # Make things faster.
-      # operator._cache_onestop()
-      # outfile = os.path.join(
-      #   args.output,
-      #   'operators',
-      #   '%s.geojson'%operator.onestop()
-      #   )
-      # data = operator.json()
-      # with open(outfile, 'w') as f:
-      #   util.json_dump_pretty(data, f)
+  # Print basic feed information.
+  print "Feed:", feed.onestop()
+  print "  Operators:", len(feed.operators())
+  print "  Routes:", len(feed.routes())
+  print "  Stops:", len(feed.stops())
+
+  # Write out updated feed.
+  data = feed.json()
+  if args.output:
+    with open(args.output, 'w') as f:
+      util.json_pretty_dump(data, f)
+  else:
+    util.json_pretty_dump(data)
+
+  # Print basic operator information.
+  for operator in feed.operators():
+    print "Operator:", operator.name()
+    print "  Routes:", len(operator.routes())
+    print "  Stops:", len(operator.stops())
+    # util.json_pretty_dump(operator.json())
