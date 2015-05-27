@@ -69,11 +69,7 @@ class Entity(object):
     c = self.point()
     return [c[0], c[1], c[0], c[1]]
   
-  # Load from GTFS or from JSON.
-  @classmethod
-  def from_gtfs(cls, feed, debug=False):
-    raise NotImplementedError
-
+  # Load from JSON.
   @classmethod
   def from_json(cls, data):
     return cls(**data)
@@ -82,23 +78,6 @@ class Entity(object):
     """Return a GeoJSON representation of this entity."""
     raise NotImplementedError
   
-  def json_datastore(self, rels=True):
-    """Return a GeoJSON representation for the Transitland Datastore."""
-    # Todo: Longer discussion on formats...
-    data = self.json()
-    skip = ['features']
-    if not rels:
-      skip += [
-        'serves', 
-        'doesNotServe', 
-        'servedBy', 
-        'notServedBy', 
-        # 'operatedBy' # required!
-      ]
-    for key in skip:
-      data.pop(key, None)
-    return data
-
   # Tags and identifiers
   def tags(self):
     if not self.data.get('tags'):
