@@ -6,6 +6,12 @@ import urllib2
 import entities
 
 class Datastore(object):
+  ONESTOP_TYPES = {
+    's': 'stop',
+    'r': 'route',
+    'o': 'operator'
+  }  
+  
   def __init__(self, endpoint, apitoken=None, debug=False):
     self.endpoint = endpoint
     self.debug = debug
@@ -39,30 +45,54 @@ class Datastore(object):
       print ret
     return ret
 
-  def changeset(self, data, rels=True):
-    onestop_types = {
-      's': 'stop',
-      'r': 'route',
-      'o': 'operator'
-    }  
-    return {
-       "changeset": {
-         "whenToApply": "instantlyIfClean",
-         "payload": {
-           "changes": [
-             {
-               "action": "createUpdate",
-               onestop_types[data['onestopId'][0]]: data
-             }
-           ]
-         }
-       }
-    }
-    
   def update_entity(self, entity, rels=True):
-    data = self.changeset(entity.json_datastore(rels=rels))
+    return self.update_entities([entity])
+    
+  def _entity_without_rels(self, entity):
+    skip = ['features', 'serves', 'doesNotServe', 'servedBy', 'notServedBy']
+    data = entity.json()
+    for key in skip:
+      data.pop(key, None)
+    return data
+    
+  def _entity_rels(self, entity):
+    skip = ['features']
+    data = entity.json()
+    for key in skip:
+      data.pop(key, None)
+    return data
+
+  def update_entities(self, entities):
+    # Sort.
+    ents = []
+    for prefix in ('o', 'r', 's'):
+      ents += filter(lambda x:x.onestop_type==prefix, entities)
+    for entity in ents:
+      print entity.onestop()
+    # 
+    changes = []
+    # Without rels
+    for entity in ents:
+      change = {}
+      change['action'] = 'createUpdate'
+      change[self.ONESTOP_TYPES[entity.onestop_type]] = self._entity_without_rels(entity)
+      changes.append(change)
+    # With rels
+    for entity in ents:
+      change = {}
+      change['action'] = 'createUpdate'
+      change[self.ONESTOP_TYPES[entity.onestop_type]] = self._entity_rels(entity)
+      changes.append(change)
+    changeset = {
+      'changeset': {
+        'whenToApply': 'instantlyIfClean',
+        'payload': {
+          'changes': changes
+        }
+      }
+    }
     endpoint = '%s/api/v1/changesets/'%(self.endpoint)
-    self.postjson(endpoint, data)
+    self.postjson(endpoint, changeset)
 
   def stops(self, point=None, radius=1000, identifier=None):
     endpoint = '%s/api/v1/stops'%(self.endpoint)
