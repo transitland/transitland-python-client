@@ -117,8 +117,4 @@ class TestEntity(unittest.TestCase):
     # requires json() to be implemented.
     entity = Entity(**self.expect)
     with self.assertRaises(NotImplementedError):
-      Entity.from_gtfs(util.example_gtfs_feed())
-    with self.assertRaises(NotImplementedError):
       entity.json()
-    with self.assertRaises(NotImplementedError):
-      entity.json_datastore()

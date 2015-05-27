@@ -78,15 +78,14 @@ def filtfirst(entities, **kw):
 def printf(msg):
   print msg
 
-def download(url, filename):
+def download(url, filename=None):
   """Download url to filename."""
   if not url:
     raise ValueError("No url given.")
-  if not filename:
-    raise ValueError("No local output filename given.")  
-  urllib.urlretrieve(url, filename)
+  filename, response = urllib.urlretrieve(url, filename)
+  return filename
 
-def json_print_pretty(data):
+def json_pretty_dump(data):
   print json.dumps(
     data,
     sort_keys=True,
@@ -94,7 +93,7 @@ def json_print_pretty(data):
     separators=(',', ': ')
   )
 
-def json_dump_pretty(data, f):
+def json_pretty_dump(data, f):
   json.dump(
     data,
     f,
@@ -138,7 +137,7 @@ def example_feed():
   import feed
   return feed.Feed.from_gtfs(
     example_gtfs_feed(), 
-    name='dta'
+    feedid='f-0-dta'
   )
 
 def example_export():

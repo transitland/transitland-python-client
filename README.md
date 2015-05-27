@@ -104,7 +104,6 @@ A basic feed description will be written to the feeds directory that can then be
             "onestopId": "o-c20-trimet"
         }
     ],
-    "sha1": "20ee818194ba0f3818a5823b705818597b7592e2",
     "tags": {},
     "url": "http://developer.trimet.org/schedule/gtfs.zip"
 }

@@ -22,4 +22,4 @@ if __name__ == "__main__":
   for operator in feed.operators():
     print "===== Operator: %s ====="%operator.onestop()
     data = operator.json()
-    util.json_print_pretty(data)
+    util.json_pretty_dump(data)
