@@ -9,20 +9,20 @@ from feed import Feed
 
 class TestFeed(unittest.TestCase):
   def setUp(self):
-    filename = os.path.join(util.example_registry(), 'feeds', 'f-9qs-dta.json')
-    with open(filename) as f:
+    self.filename = os.path.join(util.example_registry(), 'feeds', 'f-9qs-dta.json')
+    with open(self.filename) as f:
       self.expect = json.load(f)
     self.url = 'file://%s'%os.path.abspath(util.example_gtfs_feed_path())
-    self.sha1 = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
+    self.sha1_gtfs = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
+    self.sha1_feed = 'c0406d30424111404d6b2fa9ade7f9fc218f5ee8'
   
   def _sanity(self, entity):
     """Sanity check after load from_json() / from_gtfs()"""
     assert entity.onestop() == self.expect['onestopId']
     assert entity.id() == self.expect['onestopId']
     assert entity.url() == self.expect['url']
-    assert entity.sha1() == self.expect['sha1']
     assert entity.feedFormat() == self.expect['feedFormat']
-    assert entity.name() == self.expect['name']
+    # assert entity.name() == self.expect['name']
   
   # Feed implementes geohash(), so we will test many Entity base methods here.
   def test_id(self):
@@ -37,14 +37,14 @@ class TestFeed(unittest.TestCase):
     entity = util.example_feed()
     entity.data['name'] = 'maximumlength' * 10
     assert len(entity.data['name']) > util.ONESTOP_LENGTH
-    assert len(entity.onestop()) <= util.ONESTOP_LENGTH
+    assert len(entity.make_onestop()) <= util.ONESTOP_LENGTH
 
   # Other Entity base methods that only make sense to test here...
   def test_json(self):
     # Check result looks like self.expect.
     entity = util.example_feed()
     data = entity.json()
-    for k in ('onestopId','name','url','sha1','feedFormat'):
+    for k in ('onestopId','url','feedFormat'):
       assert data[k] == self.expect[k]
     assert len(data['operatorsInFeed']) == 1
     assert 'o-9qs-demotransitauthority' in data['operatorsInFeed']
@@ -54,21 +54,6 @@ class TestFeed(unittest.TestCase):
     entity = util.example_feed()
     roundtrip = Feed.from_json(entity.json())
     self._sanity(roundtrip)
-
-  def test_json_datastore(self):
-    # Alternate JSON representation, for datastore...
-    entity = util.example_feed()
-    data = entity.json_datastore()
-    assert 'identifiers' not in data
-    assert 'features' not in data
-    # assert data['tags']
-    assert data['operatorsInFeed']
-    # check without rels...
-    data = entity.json_datastore(rels=False)
-    assert 'serves' not in data
-    assert 'doesNotServe' not in data
-    assert 'servedBy' not in data
-    assert 'notServedBy' not in data
 
   # Geometry and point are not implemented...
   def test_geometry(self):
@@ -92,10 +77,6 @@ class TestFeed(unittest.TestCase):
     entity = util.example_feed()
     assert entity.url() == self.expect['url']
     
-  def test_sha1(self):
-    entity = util.example_feed()
-    assert entity.sha1() == self.expect['sha1']
-
   def test_feedFormat(self):
     entity = util.example_feed()
     assert entity.feedFormat() == self.expect['feedFormat']    
@@ -113,24 +94,18 @@ class TestFeed(unittest.TestCase):
     f.close()
     entity = util.example_feed()
     entity.data['url'] = self.url
-    entity.data['sha1'] = self.sha1
     entity.download(f.name, cache=False)
-    assert util.sha1file(f.name) == entity.sha1()
-    entity.download(f.name)
-    assert util.sha1file(f.name) == entity.sha1()
-    os.unlink(f.name)
+    assert util.sha1file(f.name) == self.sha1_gtfs
 
   def test_download_badsha1(self):
     f = tempfile.NamedTemporaryFile(delete=False)
     f.write('asdf')
     f.close()
-    assert util.sha1file(f.name) != self.sha1
+    assert util.sha1file(f.name) != self.sha1_gtfs
     entity = util.example_feed()
     entity.data['url'] = self.url
-    entity.data['sha1'] = self.sha1
-    entity.download(f.name)
-    assert util.sha1file(f.name) == entity.sha1()
-    os.unlink(f.name)
+    entity.download(f.name, verify=True, sha1=self.sha1_gtfs)
+    assert util.sha1file(f.name) == self.sha1_gtfs
   
   # Load / dump
   def test_from_gtfs(self):

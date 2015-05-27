@@ -16,31 +16,27 @@ class Feed(Entity):
   # Feed methods.
   def url(self):
     return self.data.get('url')
-  
-  def sha1(self):
-    return self.data.get('sha1')
-    
+      
   def feedFormat(self):
     return self.data.get('feedFormat', 'gtfs')
   
   # Download the latest feed.
-  def verify_sha1(self, filename, sha1=None):
+  def verify_sha1(self, filename, sha1):
     """Check if a file is validly cached."""
-    sha1 = sha1 or self.sha1()
     if os.path.exists(filename):
       if sha1 and util.sha1file(filename) == sha1:
         return True
     return False
 
-  def download(self, filename, cache=True, verify=True):
+  def download(self, filename=None, cache=True, verify=True, sha1=None):
     """Download the GTFS feed to a file. Return filename."""
-    if cache and self.verify_sha1(filename):
+    if cache and self.verify_sha1(filename, sha1):
       return filename
-    util.download(self.url(), filename)
-    if verify and not self.verify_sha1(filename):
+    filename = util.download(self.url(), filename)
+    if verify and sha1 and not self.verify_sha1(filename, sha1):
       raise errors.InvalidChecksumError("Incorrect checksum: %s, expected %s"%(
         util.sha1file(filename),
-        self.sha1()
+        sha1
       ))
     return filename
 
@@ -59,8 +55,9 @@ class Feed(Entity):
         pass
     
     # Create feed
-    kw['sha1'] = util.sha1file(gtfs_feed.filename)
-    kw['geohash'] = geom.geohash_features(gtfs_feed.stops())
+    geohash = geom.geohash_features(gtfs_feed.stops())
+    feedid = 'f-%s-%s'%(geohash, feedid.split('-')[-1])
+    kw['onestopId'] = feedid
     feed = cls(**kw)
 
     # Create TL Stops
@@ -134,9 +131,7 @@ class Feed(Entity):
   def json(self):
     return {
       "onestopId": self.onestop(),
-      "name": self.name(),
       "url": self.url(),
-      "sha1": self.sha1(),
       "feedFormat": self.feedFormat(),
       "tags": self.tags(),
       "operatorsInFeed": sorted(self.operatorsInFeed())

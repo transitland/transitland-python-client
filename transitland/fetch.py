@@ -23,9 +23,7 @@ def run():
     feed = r.feed(feedid)
     filename = '%s.zip'%feed.onestop()
     print "Downloading: %s -> %s"%(feed.url(), filename)
-    feed.download(filename, verify=False)
-    if not feed.verify_sha1(filename):
-      print """Warning: Incorrect SHA1 checksum. Feed Registry may be out of date."""
+    feed.download(filename)
 
 if __name__ == "__main__":
   run()
