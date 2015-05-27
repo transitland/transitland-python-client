@@ -10,7 +10,7 @@ import util
 class Test_download(unittest.TestCase):
   def setUp(self):
     self.url = 'file://%s'%os.path.abspath(util.example_gtfs_feed_path())    
-    self.sha1 = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
+    self.sha1_gtfs = '4e5e6a2668d12cca29c89a969d73e05e625d9596'
   
   def test_download(self):
     # Create a temporary file name, then delete it...
@@ -21,22 +21,21 @@ class Test_download(unittest.TestCase):
     assert not os.path.exists(f.name)
     # Now download, using the deleted temporary file name.
     util.download(self.url, f.name)
-    assert util.sha1file(f.name) == self.sha1
+    assert util.sha1file(f.name) == self.sha1_gtfs
     
   def test_download_nofile(self):
-    with self.assertRaises(ValueError):
-      util.download(self.url, None)
+    filename = util.download(self.url)
+    assert util.sha1file(filename) == self.sha1_gtfs
 
   def test_download_nourl(self):
-    f = tempfile.NamedTemporaryFile(delete=False)
     with self.assertRaises(ValueError):
-      util.download(None, f.name)
+      util.download(None)
   
-class Test_json_dump_pretty(unittest.TestCase):
-  def test_json_dump_pretty(self):
+class Test_json_pretty_dump(unittest.TestCase):
+  def test_json_pretty_dump(self):
     f = StringIO.StringIO()
     data = {'one':'two', 'a':'b'}
-    util.json_dump_pretty(data, f)
+    util.json_pretty_dump(data, f)
     f.seek(0)
     check = f.read()
     assert '    "a"' in check
