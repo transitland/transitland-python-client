@@ -49,8 +49,6 @@ class TestRoute(unittest.TestCase):
   
   def test_stop(self):
     entity = util.example_feed().route(self.expect['onestopId'])
-    # print "test_stop:", self.expect['serves']
-    # print [i.onestop() for i in entity.stops()]
     for i in self.expect['serves']:
       assert entity.stop(i)
     
