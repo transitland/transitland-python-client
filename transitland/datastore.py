@@ -18,31 +18,20 @@ class Datastore(object):
     self.apitoken = apitoken
 
   def postjson(self, endpoint, data):
-    if self.debug:  # pragma: no cover
-      print "====== POST: %s ======"%endpoint
-      print data
     req = urllib2.Request(endpoint)
     req.add_header('Content-Type', 'application/json')
     if self.apitoken:
       req.add_header('Authorization', 'Token token=%s'%self.apitoken)
     response = urllib2.urlopen(req, json.dumps(data))
     ret = json.loads(response.read())
-    if self.debug:  # pragma: no cover
-      print "--> Response: "
-      print ret
     return ret
 
   def getjson(self, endpoint):
-    if self.debug:  # pragma: no cover
-      print "====== GET: %s ======"%endpoint
     req = urllib2.Request(endpoint)
     if self.apitoken:
       req.add_header('Authorization', 'Token token=%s'%self.apitoken)
     response = urllib2.urlopen(req)
     ret = json.loads(response.read())
-    if self.debug: # pragma: no cover
-      print "--> Response: "
-      print ret
     return ret
 
   def update_entity(self, entity, rels=True):
@@ -67,8 +56,6 @@ class Datastore(object):
     ents = []
     for prefix in ('o', 'r', 's'):
       ents += filter(lambda x:x.onestop_type==prefix, entities)
-    for entity in ents:
-      print entity.onestop()
     # 
     changes = []
     # Without rels

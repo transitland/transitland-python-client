@@ -92,7 +92,6 @@ class Feed(Entity):
     routes = {}
     for gtfs_route in gtfs_feed.routes():
       if not gtfs_route.stops():
-        print "No stops:", gtfs_route.name()
         continue
       route = Route(
         name=gtfs_route.name(),
@@ -107,7 +106,6 @@ class Feed(Entity):
         routes[key] = route
       else:
         route = routes[key]
-        print "merging route...", route, route.identifiers()
       # Maintain reference to GTFS Route
       gtfs_route._tl = route
       route.add_identifier(gtfs_route.feedid(feedid))

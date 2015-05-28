@@ -75,9 +75,6 @@ def filtfirst(entities, **kw):
     raise ValueError('No result')
   return ret[0]
 
-def printf(msg):
-  print msg
-
 def download(url, filename=None):
   """Download url to filename."""
   if not url:
@@ -85,7 +82,7 @@ def download(url, filename=None):
   filename, response = urllib.urlretrieve(url, filename)
   return filename
 
-def json_pretty_dump(data):
+def json_pretty_print(data):
   print json.dumps(
     data,
     sort_keys=True,
