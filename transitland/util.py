@@ -115,6 +115,11 @@ def example_registry(path=None):
     'examples'    
   )
 
+def example_registry_feed(feed='f-9qs-dta'):
+  import registry
+  r = registry.FeedRegistry(path=example_registry())
+  return r.feed(feed)
+
 def example_gtfs_feed_path(feed='f-9qs-dta.zip'):
   return os.path.join(
     os.path.dirname(__file__), 
@@ -125,16 +130,15 @@ def example_gtfs_feed_path(feed='f-9qs-dta.zip'):
 
 def example_gtfs_feed(*args, **kw):
   import mzgtfs.feed
-  a = mzgtfs.feed.Feed(
+  return mzgtfs.feed.Feed(
     example_gtfs_feed_path(*args, **kw)
   )
-  return a
 
 def example_feed():
   import feed
   return feed.Feed.from_gtfs(
     example_gtfs_feed(), 
-    feedid='f-0-dta'
+    feedname='dta'
   )
 
 def example_export():
