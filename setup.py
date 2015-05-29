@@ -12,7 +12,7 @@ setup(
   license='License :: OSI Approved :: MIT License',
   packages=['transitland'],
   install_requires=[
-    'mzgtfs>=0.10.0', 
+    'mzgtfs>=0.10.4', 
     'mzgeohash'
   ],
   zip_safe=False,
