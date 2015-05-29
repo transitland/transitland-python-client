@@ -47,7 +47,7 @@ class TestFeed(unittest.TestCase):
     for k in ('onestopId','url','feedFormat'):
       assert data[k] == self.expect[k]
     assert len(data['operatorsInFeed']) == 1
-    assert 'o-9qs-demotransitauthority' in data['operatorsInFeed']
+    assert data['operatorsInFeed'][0]['onestopId'] == 'o-9qs-demotransitauthority'
   
   def test_from_json(self):
     # TODO: more thorough testing here...
@@ -134,7 +134,8 @@ class TestFeed(unittest.TestCase):
     entity = util.example_feed()
     o = entity.operatorsInFeed()
     assert len(o) == 1
-    assert 'o-9qs-demotransitauthority' in o
+    assert o[0]['onestopId'] == 'o-9qs-demotransitauthority'
+    assert o[0]['gtfsAgencyId'] == 'DTA'
     
   def test_routes(self):
     entity = util.example_feed()
