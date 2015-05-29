@@ -18,11 +18,11 @@ class Operator(Entity):
 
   def _cache_onestop(self):
     key = 'onestopId'
-    self.data[key] = self.make_onestop()
+    self.data[key] = self.data.get(key) or self.make_onestop()
     for i in self.routes():
-      i.data[key] = i.make_onestop()
+      i.data[key] = i.data.get(key) or i.make_onestop()
     for i in self.stops():
-      i.data[key] = i.make_onestop()
+      i.data[key] = i.data.get(key) or i.make_onestop()
     
   @classmethod
   def from_json(cls, data):

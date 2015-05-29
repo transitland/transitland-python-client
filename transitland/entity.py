@@ -16,6 +16,8 @@ class Entity(object):
     """Set name, Onestop ID, and geometry."""
     if 'onestop_id' in data:
       data['onestopId'] = data.pop('onestop_id')
+    if 'tags' not in data:
+      data['tags'] = {}
     self.data = data
     self.parents = set()
     self.children = set()
@@ -80,9 +82,10 @@ class Entity(object):
   
   # Tags and identifiers
   def tags(self):
-    if not self.data.get('tags'):
-      self.data['tags'] = {}
-    return self.data.get('tags')
+    return self.data['tags']
+
+  def tag(self, key):
+    return self.data['tags'].get(key)
 
   def identifiers(self):
     return self.data.get('identifiers') or []
@@ -91,8 +94,6 @@ class Entity(object):
     self.add_tags({key:value})
 
   def add_tags(self, tags):
-    if not self.data.get('tags'):
-      self.data['tags'] = {}
     self.data['tags'].update(tags)
 
   def add_identifier(self, identifier):
@@ -125,7 +126,7 @@ class Entity(object):
     for k,v in item.tags().items():
       self.set_tag(k,v)
     # merge relations
-    relkeys = ['serves', 'servedBy', 'operatedBy', 'operatorsInFeed']
+    relkeys = ['serves', 'servedBy', 'operatedBy']
     for relkey in relkeys:
       if (relkey in self.data) or (relkey in item.data):
         a = set(self.data.get(relkey, []))

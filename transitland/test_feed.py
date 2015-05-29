@@ -47,7 +47,7 @@ class TestFeed(unittest.TestCase):
     for k in ('onestopId','url','feedFormat'):
       assert data[k] == self.expect[k]
     assert len(data['operatorsInFeed']) == 1
-    assert 'o-9qs-demotransitauthority' in data['operatorsInFeed']
+    assert data['operatorsInFeed'][0]['onestopId'] == 'o-9qs-demotransitauthority'
   
   def test_from_json(self):
     # TODO: more thorough testing here...
@@ -118,6 +118,25 @@ class TestFeed(unittest.TestCase):
     assert len(o.routes()) == 5
     assert len(o.stops()) == 9
 
+  def test_load_gtfs(self):
+    gtfs_feed = util.example_gtfs_feed()
+    feed = util.example_registry_feed()
+    feed.load_gtfs(gtfs_feed)
+    self._sanity(feed)
+
+  def test_load_gtfs_onestop_id(self):
+    onestop_id = 'o-9qs-test'
+    gtfs_feed = util.example_gtfs_feed()
+    feed = util.example_registry_feed()
+    feed.data['operatorsInFeed'] = [{
+			"gtfsAgencyId": "DTA",
+			"onestopId": onestop_id
+    }]
+    feed.load_gtfs(gtfs_feed)
+    assert len(feed.operators()) == 1
+    o = list(feed.operators())[0]
+    assert o.onestop() == onestop_id
+
   # Graph
   def test_operators(self):
     entity = util.example_feed()
@@ -134,7 +153,8 @@ class TestFeed(unittest.TestCase):
     entity = util.example_feed()
     o = entity.operatorsInFeed()
     assert len(o) == 1
-    assert 'o-9qs-demotransitauthority' in o
+    assert o[0]['onestopId'] == 'o-9qs-demotransitauthority'
+    assert o[0]['gtfsAgencyId'] == 'DTA'
     
   def test_routes(self):
     entity = util.example_feed()
