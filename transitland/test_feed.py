@@ -118,6 +118,25 @@ class TestFeed(unittest.TestCase):
     assert len(o.routes()) == 5
     assert len(o.stops()) == 9
 
+  def test_load_gtfs(self):
+    gtfs_feed = util.example_gtfs_feed()
+    feed = util.example_registry_feed()
+    feed.load_gtfs(gtfs_feed)
+    self._sanity(feed)
+
+  def test_load_gtfs_onestop_id(self):
+    onestop_id = 'o-9qs-test'
+    gtfs_feed = util.example_gtfs_feed()
+    feed = util.example_registry_feed()
+    feed.data['operatorsInFeed'] = [{
+			"gtfsAgencyId": "DTA",
+			"onestopId": onestop_id
+    }]
+    feed.load_gtfs(gtfs_feed)
+    assert len(feed.operators()) == 1
+    o = list(feed.operators())[0]
+    assert o.onestop() == onestop_id
+
   # Graph
   def test_operators(self):
     entity = util.example_feed()

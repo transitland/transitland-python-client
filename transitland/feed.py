@@ -42,23 +42,36 @@ class Feed(Entity):
 
   # Load / dump
   @classmethod
-  def from_gtfs(cls, gtfs_feed, feedid='f-0-unknown', debug=False, **kw):
-    # Backwards compat.
-    try:
-      gtfs_feed.preload()
-    except AttributeError, e:
-      pass
-    for agency in gtfs_feed.agencies():
-      try:
-        agency.preload()
-      except AttributeError, e:
-        pass
+  def from_gtfs(cls, gtfs_feed, feed=None, feedname='unknown', populate=True, debug=False, **kw):
+    # Make sure the GTFS feed is completely loaded.
+    gtfs_feed.preload()
     
     # Create feed
-    geohash = geom.geohash_features(gtfs_feed.stops())
-    feedid = 'f-%s-%s'%(geohash, feedid.split('-')[-1])
-    kw['onestopId'] = feedid
-    feed = cls(**kw)
+    if feed:
+      pass
+    else:
+      kw['onestopId'] = 'f-%s-%s'%(
+        geom.geohash_features(gtfs_feed.stops()), 
+        feedname
+      )
+      feed = cls(**kw)
+    feedid = feed.onestop()
+    
+    # Override operator Onestop IDs
+    agency_onestop = {}
+    for i in feed.operatorsInFeed():
+      agency_onestop[i['gtfsAgencyId']] = i['onestopId']
+
+    # Check for agencies.
+    gtfs_agencies = []
+    for gtfs_agency in gtfs_feed.agencies():
+      if populate or gtfs_agency.id() in agency_onestop:
+        gtfs_agencies.append(gtfs_agency)
+      else:
+        # Unknown agency
+        pass
+    if not gtfs_agencies:
+      return feed
 
     # Create TL Stops
     stops = {}
@@ -99,7 +112,9 @@ class Feed(Entity):
       )
       # Link to TL Stops
       for gtfs_stop in gtfs_route.stops():
-        route.add_child(gtfs_stop._tl)
+        t = getattr(gtfs_stop, '_tl', None)
+        if t:
+          route.add_child(t)
       # Cache
       key = route.onestop()
       if key not in routes:
@@ -110,21 +125,30 @@ class Feed(Entity):
       gtfs_route._tl = route
       route.add_identifier(gtfs_route.feedid(feedid))
       route.add_tags(gtfs_route.data._asdict())
-        
-    for gtfs_agency in gtfs_feed.agencies():
+    
+    # Create TL Agencies
+    for gtfs_agency in gtfs_agencies:
       agency = Operator(
         name=gtfs_agency.name(),
-        geometry=gtfs_agency.geometry()
+        geometry=gtfs_agency.geometry(),
+        onestop_id=agency_onestop.get(gtfs_agency.id())
       )
       agency.add_identifier(gtfs_agency.feedid(feedid))
       agency.add_tags(gtfs_agency.data._asdict())      
       for gtfs_route in gtfs_agency.routes():
-        r = getattr(gtfs_route, '_tl', None)
-        if not r:
-          continue
-        agency.add_child(r)
+        t = getattr(gtfs_route, '_tl', None)
+        if t:
+          agency.add_child(t)
+      # Inelegant.
+      agency._cache_onestop()
+      # Add agency to feed
       feed.add_child(agency)
+      
     return feed
+    
+  def load_gtfs(self, gtfs_feed, debug=False, **kw):
+    """Instance method version of from_gtfs()"""
+    self.from_gtfs(gtfs_feed, feed=self, debug=debug, **kw)
     
   def json(self):
     return {
