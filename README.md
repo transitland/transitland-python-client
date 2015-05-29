@@ -47,8 +47,6 @@ A specific feed can be read with FeedRegistry.feed(). The resulting Feed can be 
 
 ```
 >>> feed = registry.feed('f-9q9-caltrain')
->>> feed.operatorsInFeed()
-'o-9q9-caltrain'
 >>> feed.url()
 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip'
 >>> feed.download('caltrain-current-gtfs.zip')
@@ -78,17 +76,17 @@ Downloading: http://archives.sfmta.com/transitdata/google_transit.zip -> f-9q8y-
 A Feed can be created from a GTFS url with transitland.bootstrap. Specify the URL with "--url" and the feed name with "--feedname":
 
 ```
-$ python -m transitland.bootstrap --url http://developer.trimet.org/schedule/gtfs.zip --feedname trimet
-Attempting to bootstrap feed from GTFS file...
-Downloading: http://developer.trimet.org/schedule/gtfs.zip -> ./data/trimet-bootstrap.zip
-Loading feed: trimet-bootstrap
-Feed: f-c20-trimet
+$ python -m transitland.bootstrap --url http://www.bart.gov/dev/schedules/google_transit.zip  --feedname bayarearapidtransit
+Downloading: http://www.bart.gov/dev/schedules/google_transit.zip
+Loading feed: /var/folders/zl/ps1504fx0b9_n2bx4ndmyyy40000gn/T/tmpUuzl2D.zip
+Feed: f-9q9-bayarearapidtransit
+  Stops: 45
+  Routes: 6
   Operators: 1
-  Routes: 89
-  Stops: 6879
-Operator: TriMet
-  Routes: 89
-  Stops: 6879
+  Operator: Bay Area Rapid Transit
+    Routes: 6
+    Stops: 45
+Writing to f-9q9-bayarearapidtransit.json
 ```
 
 A basic feed description will be written to the feeds directory that can then be annotated with details about licenses, additional identifiers, etc.
@@ -96,16 +94,16 @@ A basic feed description will be written to the feeds directory that can then be
 ```json
 {
     "feedFormat": "gtfs",
-    "name": "trimet",
-    "onestopId": "f-c20-trimet",
+    "onestopId": "f-9q9-bayarearapidtransit",
     "operatorsInFeed": [
         {
-            "gtfsAgencyId": "trimet",
-            "onestopId": "o-c20-trimet"
+            "gtfsAgencyId": "BART",
+            "identifiers": [],
+            "onestopId": "o-9q9-bayarearapidtransit"
         }
     ],
     "tags": {},
-    "url": "http://developer.trimet.org/schedule/gtfs.zip"
+    "url": "http://www.bart.gov/dev/schedules/google_transit.zip"
 }
 ```
 

@@ -132,7 +132,7 @@ class Feed(Entity):
       "url": self.url(),
       "feedFormat": self.feedFormat(),
       "tags": self.tags(),
-      "operatorsInFeed": sorted(self.operatorsInFeed())
+      "operatorsInFeed": self.operatorsInFeed()
     }
   
   def geohash(self):
@@ -140,9 +140,18 @@ class Feed(Entity):
   
   # Graph
   def operatorsInFeed(self):
-    ret = set([i.onestop() for i in self.operators()])
-    ret |= set(self.data.get('operatorsInFeed', []))
-    return ret
+    ret = {}
+    for operator in self.data.get('operatorsInFeed', []):
+      ret[operator['onestopId']] = operator
+    for operator in self.operators():
+      data = ret.get(operator.onestop(), {})
+      identifiers = set(data.get('identifiers') or [])
+      # identifiers |= set(operator.identifiers())
+      data['identifiers'] = sorted(identifiers)
+      data['onestopId'] = operator.onestop()
+      data['gtfsAgencyId'] = operator.tag('agency_id')
+      ret[operator.onestop()] = data
+    return sorted(ret.values(), key=lambda x:x.get('onestopId'))
 
   def operators(self):
     return set(self.children) # copy
