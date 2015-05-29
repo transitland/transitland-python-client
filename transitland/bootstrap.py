@@ -3,8 +3,6 @@ import argparse
 import json
 import sys
 import os
-import tempfile
-import urllib
 
 import mzgtfs.feed
 
@@ -20,7 +18,16 @@ if __name__ == "__main__":
   parser.add_argument('--url', help='GTFS url')
   parser.add_argument('--filename', help='GTFS feed filename')
   parser.add_argument('--feedname', help='Feed name')
-  parser.add_argument('--output', help='Output JSON filename')
+  parser.add_argument(
+    '--output', 
+    help='Specify output JSON filename; default is <onestopId>.json'
+  )
+  parser.add_argument(
+    '--print', 
+    help='Print JSON output', 
+    action='store_true', 
+    dest='printjson'
+  )
   parser.add_argument(
     '--debug', 
     help='Show helpful debugging information', 
@@ -34,7 +41,7 @@ if __name__ == "__main__":
   filename = args.filename
   if args.url:
     print "Downloading: %s"%args.url
-    util.download(args.url)
+    filename = util.download(args.url)
 
   # Everything is now ready to create the feed.
   print "Loading feed:", filename
@@ -51,21 +58,26 @@ if __name__ == "__main__":
   
   # Print basic feed information.
   print "Feed:", feed.onestop()
-  print "  Operators:", len(feed.operators())
-  print "  Routes:", len(feed.routes())
   print "  Stops:", len(feed.stops())
-
-  # Write out updated feed.
-  data = feed.json()
-  if args.output:
-    with open(args.output, 'w') as f:
-      util.json_pretty_dump(data, f)
-  else:
-    util.json_pretty_dump(data)
-
+  print "  Routes:", len(feed.routes())
+  print "  Operators:", len(feed.operators())
   # Print basic operator information.
   for operator in feed.operators():
-    print "Operator:", operator.name()
-    print "  Routes:", len(operator.routes())
-    print "  Stops:", len(operator.stops())
-    # util.json_pretty_dump(operator.json())
+    print "  Operator:", operator.name()
+    print "    Routes:", len(operator.routes())
+    print "    Stops:", len(operator.stops())
+
+  # Write out updated feed.
+  output = args.output or '%s.json'%feed.onestop()
+  data = feed.json()
+  if args.printjson:
+    util.json_pretty_print(data)
+  if os.path.exists(output):
+    print "Error: Filename %s already exists."%output
+    sys.exit(1)
+  else:
+    print "Writing to %s"%output
+    with open(output, 'w') as f:
+      util.json_pretty_dump(data, f)
+    
+
