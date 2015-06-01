@@ -125,6 +125,7 @@ class Feed(Entity):
       gtfs_route._tl = route
       route.add_identifier(gtfs_route.feedid(feedid))
       route.add_tags(gtfs_route.data._asdict())
+      route.set_tag('vehicle_type', gtfs_route.vehicle())
     
     # Create TL Agencies
     for gtfs_agency in gtfs_agencies:
