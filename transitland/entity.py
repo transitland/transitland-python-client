@@ -16,8 +16,7 @@ class Entity(object):
     """Set name, Onestop ID, and geometry."""
     if 'onestop_id' in data:
       data['onestopId'] = data.pop('onestop_id')
-    if 'tags' not in data:
-      data['tags'] = {}
+    data['tags'] = data.get('tags') or {}
     self.data = data
     self.parents = set()
     self.children = set()
