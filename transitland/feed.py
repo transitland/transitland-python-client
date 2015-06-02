@@ -49,10 +49,10 @@ class Feed(Entity):
     # Create feed
     if feed:
       pass
-    else:
+    else:      
       kw['onestopId'] = 'f-%s-%s'%(
         geom.geohash_features(gtfs_feed.stops()), 
-        feedname
+        cls().mangle(feedname)
       )
       feed = cls(**kw)
     feedid = feed.onestop()
