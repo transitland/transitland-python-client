@@ -52,8 +52,7 @@ if __name__ == "__main__":
   kw['debug'] = args.debug
   kw['url'] = args.url
   if args.feedname:
-    # set the feedid with geohash
-    kw['feedid'] = 'f-0-%s'%(args.feedname.lower().strip())
+    kw['feedname'] = args.feedname
   feed = entities.Feed.from_gtfs(f, **kw)
   
   # Print basic feed information.
