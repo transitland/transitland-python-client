@@ -18,6 +18,13 @@ class Stop(Entity):
   def point(self):
     return self.geometry()['coordinates']
 
+  def add_tags_gtfs(self, gtfs_entity):
+    keys = ['stop_url']
+    tags = gtfs_entity.data._asdict()
+    for key in keys:
+      if key in tags:
+        self.set_tag(key, tags[key])
+
   # Load / dump
   def json(self):
     return {

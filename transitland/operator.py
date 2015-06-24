@@ -24,6 +24,10 @@ class Operator(Entity):
     for i in self.stops():
       i.data[key] = i.data.get(key) or i.make_onestop()
     
+  def add_tags_gtfs(self, gtfs_entity):
+    tags = gtfs_entity.data._asdict()
+    self.set_tag('agency_id', tags.get('agency_id'))
+    
   @classmethod
   def from_json(cls, data):
     """Load Operator from GeoJSON."""

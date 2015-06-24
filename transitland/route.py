@@ -12,6 +12,9 @@ class Route(Entity):
     """Return 10 characters of geohash."""
     return geom.geohash_features(self.stops())
 
+  def add_tags_gtfs(self, gtfs_entity):
+    self.set_tag('vehicle_type', gtfs_entity.vehicle())
+    
   # Load / dump
   def json(self):
     return {
