@@ -53,7 +53,8 @@ if __name__ == "__main__":
   kw['url'] = args.url
   if args.feedname:
     kw['feedname'] = args.feedname
-  feed = entities.Feed.from_gtfs(f, **kw)
+  feed = entities.Feed(**kw)
+  feed.bootstrap_gtfs(f)
   
   # Print basic feed information.
   print "Feed:", feed.onestop()

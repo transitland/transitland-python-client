@@ -136,10 +136,12 @@ def example_gtfs_feed(*args, **kw):
 
 def example_feed():
   import feed
-  return feed.Feed.from_gtfs(
-    example_gtfs_feed(), 
+  f = feed.Feed()
+  f.bootstrap_gtfs(
+    example_gtfs_feed(),
     feedname='dta'
   )
+  return f
 
 def example_export():
   filename = os.path.join(

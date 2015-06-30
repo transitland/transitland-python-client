@@ -12,7 +12,7 @@ def sorted_onestop(entities):
 class Operator(Entity):
   """Transitland Operator Entity."""
   onestop_type = 'o'
-  
+
   def geohash(self):
     return geom.geohash_features(self.stops())
 
@@ -23,7 +23,21 @@ class Operator(Entity):
       i.data[key] = i.data.get(key) or i.make_onestop()
     for i in self.stops():
       i.data[key] = i.data.get(key) or i.make_onestop()
-    
+
+  def add_tags_gtfs(self, gtfs_entity):
+    keys = [
+      'agency_timezone',
+      'agency_url',
+      'agency_phone',
+      'agency_lang',
+      'agency_fare_url'
+    ]
+    tags = gtfs_entity.data._asdict()
+    for key in keys:
+      if key in tags:
+        self.set_tag(key, tags[key])
+    self.set_tag('agency_id', tags.get('agency_id'))
+
   @classmethod
   def from_json(cls, data):
     """Load Operator from GeoJSON."""
@@ -47,7 +61,7 @@ class Operator(Entity):
   def json(self):
     return {
       'type': 'FeatureCollection',
-      'geometry': self.geometry(),      
+      'geometry': self.geometry(),
       'properties': {},
       'name': self.name(),
       'tags': self.tags(),
@@ -64,21 +78,20 @@ class Operator(Entity):
     ret = set([i.onestop() for i in self.stops()])
     ret |= set(self.data.get('serves', []))
     return ret
-    
+
   def routes(self):
     return set(self.children)
 
   def route(self, onestop_id):
     """Return a single route by Onestop ID."""
     return util.filtfirst(self.routes(), onestop=onestop_id)
-  
+
   def stops(self):
     stops = set()
     for i in self.routes():
       stops |= i.stops()
-    return stops  
+    return stops
 
   def stop(self, onestop_id):
     """Return a single stop by Onestop ID."""
     return util.filtfirst(self.stops(), onestop=onestop_id)
-  

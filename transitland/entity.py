@@ -33,13 +33,15 @@ class Entity(object):
   def onestop(self):
     """Return the Onestop ID for this entity."""
     return self.data.get('onestopId') or self.make_onestop()
-    
-  def make_onestop(self):
+
+  def make_onestop(self, geohash=None, name=None):
+    geohash = geohash or self.geohash()
+    name = self.mangle(name or self.name())
     # Check maximum length.
     onestop = '%s-%s-%s'%(
       self.onestop_type, 
-      self.geohash()[:util.GEOHASH_LENGTH], 
-      self.mangle(self.name())
+      geohash[:util.GEOHASH_LENGTH], 
+      name
     )
     return onestop[:util.ONESTOP_LENGTH]
 
@@ -70,6 +72,18 @@ class Entity(object):
     c = self.point()
     return [c[0], c[1], c[0], c[1]]
   
+  # Load from GTFS entity.
+  @classmethod
+  def from_gtfs(cls, gtfs_entity, feedid, **kw):
+    entity = cls(
+      name=gtfs_entity.name(),
+      geometry=gtfs_entity.geometry(),
+      **kw
+    )
+    entity.add_identifier(gtfs_entity.feedid(feedid))
+    entity.add_tags_gtfs(gtfs_entity)
+    return entity
+  
   # Load from JSON.
   @classmethod
   def from_json(cls, data):
@@ -95,27 +109,21 @@ class Entity(object):
   def add_tags(self, tags):
     self.data['tags'].update(tags)
 
+  def add_tags_gtfs(self, gtfs_entity):
+    pass
+
   def add_identifier(self, identifier):
     """Add GTFS data to the set of identifiers."""
     if not self.data.get('identifiers'):
       self.data['identifiers'] = []
-    if identifier in self.data['identifiers']:
-      raise errors.ExistingIdentifierError(
-        "Identifier already present: %s"%identifier
-      )
-    self.data['identifiers'].append(identifier)
+    if identifier not in self.data['identifiers']:
+      self.data['identifiers'].append(identifier)
   
   # Rename
-  def merge(self, item, ignore_existing=True):
+  def merge(self, item):
     """Merge data into identifiers."""
     for identifier in item.identifiers():
-      try:
-        self.add_identifier(identifier)
-      except errors.ExistingIdentifierError, e:
-        if ignore_existing:
-          pass
-        else:
-          raise
+      self.add_identifier(identifier)
     # merge name and geometry.
     if 'name' in item.data:
       self.data['name'] = item.data['name']

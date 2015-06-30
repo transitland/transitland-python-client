@@ -40,8 +40,6 @@ class TestEntity(unittest.TestCase):
     assert len(entity.identifiers()) == 2
     for i in entity.identifiers():
       assert i in data
-    with self.assertRaises(errors.ExistingIdentifierError):
-      entity.add_identifier('abc')
 
   def test_merge(self):
     data = ['abc', 'def']
@@ -75,15 +73,13 @@ class TestEntity(unittest.TestCase):
     entity1.add_identifier('abc')
     entity2 = Entity()
     entity2.add_identifier('abc')
-    with self.assertRaises(errors.ExistingIdentifierError):
-      entity1.merge(entity2, ignore_existing=False)
   
   def test_merge_existing_pass(self):
     entity1 = Entity()
     entity1.add_identifier('abc')
     entity2 = Entity()
     entity2.add_identifier('abc')
-    entity1.merge(entity2, ignore_existing=True)
+    entity1.merge(entity2)
     assert len(entity1.identifiers()) == 1
     assert entity1.identifiers()[0] == 'abc'
   

@@ -17,7 +17,7 @@ class TestFeed(unittest.TestCase):
     self.sha1_feed = 'c0406d30424111404d6b2fa9ade7f9fc218f5ee8'
   
   def _sanity(self, entity):
-    """Sanity check after load from_json() / from_gtfs()"""
+    """Sanity check after load from_json() / bootstrap_gtfs()"""
     assert entity.onestop() == self.expect['onestopId']
     assert entity.id() == self.expect['onestopId']
     assert entity.url() == self.expect['url']
@@ -37,7 +37,7 @@ class TestFeed(unittest.TestCase):
     entity = util.example_feed()
     entity.data['name'] = 'maximumlength' * 10
     assert len(entity.data['name']) > util.ONESTOP_LENGTH
-    assert len(entity.make_onestop()) <= util.ONESTOP_LENGTH
+    assert len(entity.make_onestop()) == util.ONESTOP_LENGTH
 
   # Other Entity base methods that only make sense to test here...
   def test_json(self):
@@ -108,7 +108,7 @@ class TestFeed(unittest.TestCase):
     assert util.sha1file(f.name) == self.sha1_gtfs
   
   # Load / dump
-  def test_from_gtfs(self):
+  def test_bootstrap_gtfs(self):
     entity = util.example_feed()
     self._sanity(entity)
     # Check operators...
@@ -118,13 +118,7 @@ class TestFeed(unittest.TestCase):
     assert len(o.routes()) == 5
     assert len(o.stops()) == 9
 
-  def test_load_gtfs(self):
-    gtfs_feed = util.example_gtfs_feed()
-    feed = util.example_registry_feed()
-    feed.load_gtfs(gtfs_feed)
-    self._sanity(feed)
-
-  def test_load_gtfs_onestop_id(self):
+  def test_bootstrap_gtfs_onestop_id(self):
     onestop_id = 'o-9qs-test'
     gtfs_feed = util.example_gtfs_feed()
     feed = util.example_registry_feed()
@@ -132,7 +126,7 @@ class TestFeed(unittest.TestCase):
 			"gtfsAgencyId": "DTA",
 			"onestopId": onestop_id
     }]
-    feed.load_gtfs(gtfs_feed)
+    feed.bootstrap_gtfs(gtfs_feed)
     assert len(feed.operators()) == 1
     o = list(feed.operators())[0]
     assert o.onestop() == onestop_id
