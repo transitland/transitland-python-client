@@ -107,6 +107,10 @@ A basic feed description will be written to the feeds directory that can then be
 }
 ```
 
+## What is copied from GTFS to Transitland?
+
+See [data.md](data.md)
+
 ## Contributing
 
 Please [open a Github issue](https://github.com/transitland/transitland-python-client/issues/new) with as much of the following information as yo're able to specify, or [contact us](#contact) for assistance.
