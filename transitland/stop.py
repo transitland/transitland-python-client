@@ -9,7 +9,7 @@ from entity import Entity
 class Stop(Entity):
   """Transitland Stop Entity."""
   onestop_type = 's'
-  
+
   def geohash(self):
     """Return 10 characters of geohash."""
     return mzgeohash.encode(self.point())
@@ -19,7 +19,13 @@ class Stop(Entity):
     return self.geometry()['coordinates']
 
   def add_tags_gtfs(self, gtfs_entity):
-    keys = ['stop_url']
+    keys = [
+      'stop_timezone',
+      'wheelchair_boarding',
+      'stop_desc',
+      'stop_url',
+      'zone_id'
+    ]
     tags = gtfs_entity.data._asdict()
     for key in keys:
       if key in tags:
@@ -44,7 +50,7 @@ class Stop(Entity):
     ret = set([i.onestop() for i in self.operators()])
     ret |= set(self.data.get('servedBy', []))
     return ret
-   
+
   def operators(self):
     agencies = set()
     for i in self.parents:
