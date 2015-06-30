@@ -10,8 +10,8 @@ class Datastore(object):
     's': 'stop',
     'r': 'route',
     'o': 'operator'
-  }  
-  
+  }
+
   def __init__(self, endpoint, apitoken=None, debug=False):
     self.endpoint = endpoint
     self.debug = debug
@@ -36,48 +36,44 @@ class Datastore(object):
 
   def update_entity(self, entity, rels=True):
     return self.update_entities([entity])
-    
-  def _entity_without_rels(self, entity):
-    skip = ['features', 'serves', 'doesNotServe', 'servedBy', 'notServedBy']
-    data = entity.json()
-    for key in skip:
-      data.pop(key, None)
-    return data
-    
-  def _entity_rels(self, entity):
-    skip = ['features']
-    data = entity.json()
-    for key in skip:
-      data.pop(key, None)
-    return data
 
-  def update_entities(self, entities):
-    # Sort.
+  def _change(self, entity, keys, action='createUpdate'):
+    data = entity.json()
+    change = {}
+    for key in keys:
+      if key in data:
+        change[key] = data.get(key)
+    if 'identifiers' in keys:
+        change['identifiedBy'] = change.pop('identifiers')
+    return {
+      'action': action,
+      self.ONESTOP_TYPES[entity.onestop_type]: change
+    }
+
+  def update_entities(self, entities, whenToApply='instantlyIfClean'):
+    # Sort
     ents = []
     for prefix in ('o', 'r', 's'):
       ents += filter(lambda x:x.onestop_type==prefix, entities)
-    # 
-    changes = []
-    # Without rels
-    for entity in ents:
-      change = {}
-      change['action'] = 'createUpdate'
-      change[self.ONESTOP_TYPES[entity.onestop_type]] = self._entity_without_rels(entity)
-      changes.append(change)
-    # With rels
-    for entity in ents:
-      change = {}
-      change['action'] = 'createUpdate'
-      change[self.ONESTOP_TYPES[entity.onestop_type]] = self._entity_rels(entity)
-      changes.append(change)
+    # Changes
+    keys = [
+      'onestopId',
+      'name',
+      'geometry',
+      'tags',
+      'identifiers',
+      'operatedBy',
+      'servedBy'
+    ]
     changeset = {
       'changeset': {
-        'whenToApply': 'instantlyIfClean',
+        'whenToApply': whenToApply,
         'payload': {
-          'changes': changes
+          'changes': [self._change(entity, keys) for entity in ents]
         }
       }
     }
+    # Post
     endpoint = '%s/api/v1/changesets/'%(self.endpoint)
     self.postjson(endpoint, changeset)
 
@@ -90,8 +86,8 @@ class Datastore(object):
       )
     if point:
       endpoint = '%s/api/v1/stops?lon=%0.8f&lat=%0.8f&r=%d'%(
-        self.endpoint, 
-        point[0], 
+        self.endpoint,
+        point[0],
         point[1],
         radius
       )

@@ -16,10 +16,10 @@ class Feed(Entity):
   # Feed methods.
   def url(self):
     return self.data.get('url')
-      
+
   def feedFormat(self):
     return self.data.get('feedFormat', 'gtfs')
-  
+
   # Download the latest feed.
   def verify_sha1(self, filename, sha1):
     """Check if a file is validly cached."""
@@ -41,17 +41,21 @@ class Feed(Entity):
     return filename
 
   # Load / dump
-  def bootstrap_gtfs(self, gtfs_feed, feedname='unknown', populate=True, debug=False, **kw):
+  def load_gtfs(self, *args, **kwargs):
+    return self.bootstrap_gtfs(*args, **kwargs)
+
+  def bootstrap_gtfs(self, gtfs_feed, feedname='unknown', populate=True):
     # Make sure the GTFS feed is completely loaded.
     gtfs_feed.preload()
-    
+
     # Set onestopId
-    self.data['onestopId'] = self.make_onestop(
-      geohash=geom.geohash_features(gtfs_feed.stops()), 
-      name=feedname
-    )
+    if 'onestopId' not in self.data:
+      self.data['onestopId'] = self.make_onestop(
+        geohash=geom.geohash_features(gtfs_feed.stops()),
+        name=feedname
+      )
     feedid = self.onestop()
-    
+
     # Override operator Onestop IDs
     agency_onestop = {}
     for i in self.operatorsInFeed():
@@ -88,7 +92,7 @@ class Feed(Entity):
       # Add identifiers and tags
       gtfs_stop._tl_ref = stop
       stop.add_identifier(gtfs_stop.feedid(feedid))
-    
+
     # Create TL Routes
     for gtfs_route in gtfs_feed.routes():
       if not gtfs_route.stops():
@@ -101,8 +105,8 @@ class Feed(Entity):
         if t:
           route.add_child(t)
       # Maintain reference to GTFS Route
-      gtfs_route._tl_ref = route      
-    
+      gtfs_route._tl_ref = route
+
     # Create TL Agencies
     for gtfs_agency in gtfs_agencies:
       operator = Operator.from_gtfs(
@@ -118,7 +122,7 @@ class Feed(Entity):
       operator._cache_onestop()
       # Add agency to feed
       self.add_child(operator)
-    
+
   def json(self):
     return {
       "onestopId": self.onestop(),
@@ -127,10 +131,10 @@ class Feed(Entity):
       "tags": self.tags(),
       "operatorsInFeed": self.operatorsInFeed()
     }
-  
+
   def geohash(self):
     return geom.geohash_features(self.stops())
-  
+
   # Graph
   def operatorsInFeed(self):
     ret = {}
@@ -148,11 +152,11 @@ class Feed(Entity):
 
   def operators(self):
     return set(self.children) # copy
-  
+
   def operator(self, onestop_id):
     """Return a single operator by Onestop ID."""
     return util.filtfirst(self.operators(), onestop=onestop_id)
-  
+
   def routes(self):
     routes = set()
     for i in self.operators():
@@ -162,7 +166,7 @@ class Feed(Entity):
   def route(self, onestop_id):
     """Return a single route by Onestop ID."""
     return util.filtfirst(self.routes(), onestop=onestop_id)
-  
+
   def stops(self):
     stops = set()
     for i in self.operators():
