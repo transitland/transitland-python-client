@@ -9,7 +9,7 @@ class TestOperator(unittest.TestCase):
     self.expect = util.example_export()
   
   def _sanity(self, entity):
-    """Perform sanity checks! After from_gtfs or from_json..."""
+    """Perform sanity checks! After bootstrap_gtfs or from_json..."""
     # More extensive checks, since json export includes nearly everything.
     assert entity.geohash() == '9qs'
     assert entity.onestop() == self.expect['onestopId']
