@@ -55,7 +55,7 @@ class Datastore(object):
   def update_entities(self, entities, whenToApply='instantlyIfClean'):
     # Sort
     ents = []
-    for prefix in ('o', 's', 'r'):
+    for prefix in ('o', 'r', 's'):
       ents += filter(lambda x:x.onestop_type==prefix, entities)
     # Changes
     keys = [
@@ -81,7 +81,7 @@ class Datastore(object):
         '/api/v1/changesets/%s/append'%changeset['id'],
         data
       )
-      print 'Entity %s of %s: %s bytes, %0.2f seconds'%(count, len(ents), len(json.dumps(data)), time.time() - t)
+      # print 'Entity %s of %s: %s bytes, %0.2f seconds'%(count, len(ents), len(json.dumps(data)), time.time() - t)
     self.postjson('/api/v1/changesets/%s/apply'%changeset['id'])
 
   def stops(self, point=None, radius=1000, identifier=None):
