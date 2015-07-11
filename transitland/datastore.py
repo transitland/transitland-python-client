@@ -2,6 +2,7 @@
 import json
 import urllib
 import urllib2
+import time
 
 import entities
 
@@ -13,12 +14,13 @@ class Datastore(object):
   }
 
   def __init__(self, endpoint, apitoken=None, debug=False):
-    self.endpoint = endpoint
+    self.host = endpoint
     self.debug = debug
     self.apitoken = apitoken
 
-  def postjson(self, endpoint, data):
-    req = urllib2.Request(endpoint)
+  def postjson(self, endpoint, data=None):
+    data = data or {}
+    req = urllib2.Request('%s/%s'%(self.host, endpoint))
     req.add_header('Content-Type', 'application/json')
     if self.apitoken:
       req.add_header('Authorization', 'Token token=%s'%self.apitoken)
@@ -27,7 +29,7 @@ class Datastore(object):
     return ret
 
   def getjson(self, endpoint):
-    req = urllib2.Request(endpoint)
+    req = urllib2.Request('%s/%s'%(self.host, endpoint))
     if self.apitoken:
       req.add_header('Authorization', 'Token token=%s'%self.apitoken)
     response = urllib2.urlopen(req)
@@ -65,28 +67,29 @@ class Datastore(object):
       'operatedBy',
       'servedBy'
     ]
-    changeset = {
-      'changeset': {
-        'whenToApply': whenToApply,
-        'payload': {
-          'changes': [self._change(entity, keys) for entity in ents]
-        }
-      }
-    }
     # Post
-    endpoint = '%s/api/v1/changesets/'%(self.endpoint)
-    self.postjson(endpoint, changeset)
+    changeset = self.postjson(
+      '/api/v1/changesets',
+      {"changeset": {"payload": {}}} # empty changeset
+    )
+    for count, entity in enumerate(ents):
+      t = time.time()
+      data = {
+        'changes': [self._change(entity, keys)]
+      }
+      self.postjson(
+        '/api/v1/changesets/%s/append'%changeset['id'],
+        data
+      )
+      # print 'Entity %s of %s: %s bytes, %0.2f seconds'%(count, len(ents), len(json.dumps(data)), time.time() - t)
+    self.postjson('/api/v1/changesets/%s/apply'%changeset['id'])
 
   def stops(self, point=None, radius=1000, identifier=None):
-    endpoint = '%s/api/v1/stops'%(self.endpoint)
+    endpoint = '/api/v1/stops'
     if identifier:
-      endpoint = '%s/api/v1/stops?identifier=%s'%(
-        self.endpoint,
-        identifier
-      )
+      endpoint = '/api/v1/stops?identifier=%s'%(identifier)
     if point:
-      endpoint = '%s/api/v1/stops?lon=%0.8f&lat=%0.8f&r=%d'%(
-        self.endpoint,
+      endpoint = '/api/v1/stops?lon=%0.8f&lat=%0.8f&r=%d'%(
         point[0],
         point[1],
         radius
