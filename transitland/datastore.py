@@ -14,19 +14,19 @@ class Datastore(object):
     'o': 'operator'
   }
 
-  def __init__(self, endpoint, apitoken=None, debug=False):
+  def __init__(self, endpoint, apitoken=None, debug=False, log=None):
     self.host = endpoint
     self.debug = debug
     self.apitoken = apitoken
+    self.log = log or (lambda x:x)
 
   def _request(self, endpoint, data=None):
-    data = data or {}
     req = urllib2.Request('%s/%s'%(self.host, endpoint))
     req.add_header('Content-Type', 'application/json')
     if self.apitoken:
       req.add_header('Authorization', 'Token token=%s'%self.apitoken)
     try:
-      if data:
+      if data is not None:
         response = urllib2.urlopen(req, json.dumps(data))
       else:
         response = urllib2.urlopen(req)
@@ -43,6 +43,7 @@ class Datastore(object):
       raise errors.DatastoreError("Invalid JSON response", response_code=response.code, response_body=data)
 
   def postjson(self, endpoint, data=None):
+    data = data or {}
     return self._request(endpoint, data=data)
 
   def getjson(self, endpoint):
@@ -80,10 +81,12 @@ class Datastore(object):
       'servedBy'
     ]
     # Post
+    self.log("Creating changeset...")
     changeset = self.postjson(
       '/api/v1/changesets',
       {"changeset": {"payload": {}}} # empty changeset
     )
+    self.log("Changeset ID: %s"%changeset['id'])
     for count, entity in enumerate(ents):
       t = time.time()
       data = {
@@ -93,8 +96,15 @@ class Datastore(object):
         '/api/v1/changesets/%s/append'%changeset['id'],
         data
       )
-      # print 'Entity %s of %s: %s bytes, %0.2f seconds'%(count, len(ents), len(json.dumps(data)), time.time() - t)
+      self.log("   entity %s of %s ok (%s bytes, %0.2f seconds)"%(
+        count+1, 
+        len(entities),
+        len(json.dumps(data)),
+        time.time() - t
+      ))
+    self.log("Applying changeset...")
     self.postjson('/api/v1/changesets/%s/apply'%changeset['id'])
+    self.log("  ok")
 
   def stops(self, point=None, radius=1000, identifier=None):
     endpoint = '/api/v1/stops'
