@@ -5,6 +5,7 @@ import urllib2
 import time
 
 import entities
+import errors
 
 class Datastore(object):
   ONESTOP_TYPES = {
@@ -18,23 +19,34 @@ class Datastore(object):
     self.debug = debug
     self.apitoken = apitoken
 
-  def postjson(self, endpoint, data=None):
+  def _request(self, endpoint, data=None):
     data = data or {}
     req = urllib2.Request('%s/%s'%(self.host, endpoint))
     req.add_header('Content-Type', 'application/json')
     if self.apitoken:
       req.add_header('Authorization', 'Token token=%s'%self.apitoken)
-    response = urllib2.urlopen(req, json.dumps(data))
-    ret = json.loads(response.read())
-    return ret
+    try:
+      if data:
+        response = urllib2.urlopen(req, json.dumps(data))
+      else:
+        response = urllib2.urlopen(req)
+    except urllib2.HTTPError, e: 
+      raise errors.DatastoreError(e.reason, response_code=e.code, response_body=e.read())
+    except urllib2.URLError, e:
+      raise errors.DatastoreError(e.reason)
+    except Exception, e:
+      raise
+    data = response.read()
+    try:
+      return json.loads(data)
+    except ValueError, e:
+      raise errors.DatastoreError("Invalid JSON response", response_code=response.code, response_body=data)
+
+  def postjson(self, endpoint, data=None):
+    return self._request(endpoint, data=data)
 
   def getjson(self, endpoint):
-    req = urllib2.Request('%s/%s'%(self.host, endpoint))
-    if self.apitoken:
-      req.add_header('Authorization', 'Token token=%s'%self.apitoken)
-    response = urllib2.urlopen(req)
-    ret = json.loads(response.read())
-    return ret
+    return self._request(endpoint)
 
   def update_entity(self, entity, rels=True):
     return self.update_entities([entity])
