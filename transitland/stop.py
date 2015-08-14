@@ -10,6 +10,9 @@ class Stop(Entity):
   """Transitland Stop Entity."""
   onestop_type = 's'
 
+  def init(self, **data):
+    self.timezone = data.pop('timezone', None)    
+
   def geohash(self):
     """Return 10 characters of geohash."""
     return mzgeohash.encode(self.point())
@@ -20,16 +23,24 @@ class Stop(Entity):
 
   def add_tags_gtfs(self, gtfs_entity):
     keys = [
-      'stop_timezone',
       'wheelchair_boarding',
       'stop_desc',
       'stop_url',
       'zone_id'
     ]
-    tags = gtfs_entity.data._asdict()
+    data = gtfs_entity.data._asdict()
+    self.timezone = data.pop('stop_timezone', None)
     for key in keys:
-      if key in tags:
-        self.set_tag(key, tags[key])
+      if key in data:
+        self.set_tag(key, data[key])
+
+  def get_timezone(self):
+    if self.timezone:
+      return self.timezone
+    tz = set(i.timezone for i in self.operators())
+    if len(tz) > 1:
+      raise ValueError, "Ambiguous timezone; stop used by multiple agencies with differing timezones"
+    return tz.pop()
 
   # Load / dump
   def json(self):
@@ -40,6 +51,7 @@ class Stop(Entity):
       'onestopId': self.onestop(),
       'name': self.name(),
       'tags': self.tags(),
+      'timezone': self.get_timezone(),
       'identifiers': sorted(self.identifiers()),
       'servedBy': sorted(self.servedBy()),
     }
