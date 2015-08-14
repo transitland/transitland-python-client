@@ -8,12 +8,6 @@ import entities
 import errors
 
 class Datastore(object):
-  ONESTOP_TYPES = {
-    's': 'stop',
-    'r': 'route',
-    'o': 'operator'
-  }
-
   def __init__(self, endpoint, apitoken=None, debug=False, log=None):
     self.host = endpoint
     self.debug = debug
@@ -43,68 +37,10 @@ class Datastore(object):
       raise errors.DatastoreError("Invalid JSON response", response_code=response.code, response_body=data)
 
   def postjson(self, endpoint, data=None):
-    data = data or {}
-    return self._request(endpoint, data=data)
+    return self._request(endpoint, data=data or {})
 
   def getjson(self, endpoint):
     return self._request(endpoint)
-
-  def update_entity(self, entity, rels=True):
-    return self.update_entities([entity])
-
-  def _change(self, entity, keys, action='createUpdate'):
-    data = entity.json()
-    change = {}
-    for key in keys:
-      if key in data:
-        change[key] = data.get(key)
-    if 'identifiers' in keys:
-        change['identifiedBy'] = change.pop('identifiers')
-    return {
-      'action': action,
-      self.ONESTOP_TYPES[entity.onestop_type]: change
-    }
-
-  def update_entities(self, entities, whenToApply='instantlyIfClean'):
-    # Sort
-    ents = []
-    for prefix in ('o', 'r', 's'):
-      ents += filter(lambda x:x.onestop_type==prefix, entities)
-    # Changes
-    keys = [
-      'onestopId',
-      'name',
-      'geometry',
-      'tags',
-      'identifiers',
-      'operatedBy',
-      'servedBy'
-    ]
-    # Post
-    self.log("Creating changeset...")
-    changeset = self.postjson(
-      '/api/v1/changesets',
-      {"changeset": {"payload": {}}} # empty changeset
-    )
-    self.log("Changeset ID: %s"%changeset['id'])
-    for count, entity in enumerate(ents):
-      t = time.time()
-      data = {
-        'changes': [self._change(entity, keys)]
-      }
-      self.postjson(
-        '/api/v1/changesets/%s/append'%changeset['id'],
-        data
-      )
-      self.log("   entity %s of %s ok (%s bytes, %0.2f seconds)"%(
-        count+1, 
-        len(entities),
-        len(json.dumps(data)),
-        time.time() - t
-      ))
-    self.log("Applying changeset...")
-    self.postjson('/api/v1/changesets/%s/apply'%changeset['id'])
-    self.log("  ok")
 
   def stops(self, point=None, radius=1000, identifier=None):
     endpoint = '/api/v1/stops'
@@ -122,3 +58,4 @@ class Datastore(object):
       e = entities.Stop.from_json(i)
       stops.add(e)
     return stops
+
