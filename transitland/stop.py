@@ -34,6 +34,14 @@ class Stop(Entity):
       if key in data:
         self.set_tag(key, data[key])
 
+  def get_timezone(self):
+    if self.timezone:
+      return self.timezone
+    tz = set(i.timezone for i in self.operators())
+    if len(tz) > 1:
+      raise ValueError, "Ambiguous timezone; stop used by multiple agencies with differing timezones"
+    return tz.pop()
+
   # Load / dump
   def json(self):
     return {
@@ -43,7 +51,7 @@ class Stop(Entity):
       'onestopId': self.onestop(),
       'name': self.name(),
       'tags': self.tags(),
-      'timezone': self.timezone,
+      'timezone': self.get_timezone(),
       'identifiers': sorted(self.identifiers()),
       'servedBy': sorted(self.servedBy()),
     }
