@@ -13,6 +13,9 @@ class Operator(Entity):
   """Transitland Operator Entity."""
   onestop_type = 'o'
 
+  def init(self, **data):
+    self.timezone = data.pop('timezone', None)    
+
   def geohash(self):
     return geom.geohash_features(self.stops())
 
@@ -26,17 +29,17 @@ class Operator(Entity):
 
   def add_tags_gtfs(self, gtfs_entity):
     keys = [
-      'agency_timezone',
       'agency_url',
       'agency_phone',
       'agency_lang',
-      'agency_fare_url'
+      'agency_fare_url',
+      'agency_id'
     ]
-    tags = gtfs_entity.data._asdict()
+    data = gtfs_entity.data._asdict()
+    self.timezone = data.pop('agency_timezone', None)    
     for key in keys:
-      if key in tags:
-        self.set_tag(key, tags[key])
-    self.set_tag('agency_id', tags.get('agency_id'))
+      if key in data:
+        self.set_tag(key, data[key])
 
   @classmethod
   def from_json(cls, data):
@@ -65,6 +68,7 @@ class Operator(Entity):
       'properties': {},
       'name': self.name(),
       'tags': self.tags(),
+      'timezone': self.timezone,
       'onestopId': self.onestop(),
       'identifiers': sorted(self.identifiers()),
       'serves': sorted(self.serves()),
