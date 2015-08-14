@@ -20,6 +20,11 @@ class Entity(object):
     self.data = data
     self.parents = set()
     self.children = set()
+    self.init(**data)
+    
+  def init(self, **kwargs):
+    """Subclass init hook."""
+    pass
 
   # Basic ID, name, geometry...    
   def name(self):
