@@ -2,6 +2,8 @@
 
 [![Circle CI](https://circleci.com/gh/transitland/transitland-python-client.png?style=badge)](https://circleci.com/gh/transitland/transitland-python-client)
 
+<span style="color:red;">Migration Warning.</span> Throughout October 2015, we're moving feed and operator records from the [GitHub-based Feed Registry](https://github.com/transitland/transitland-feed-registry) into Transitland's [Datastore API](https://github.com/transitland/transitland-datastore/blob/master/README.md#api-endpoints). This client library will be updated soon to work with the new Datastore API endpoints, but will be broken in the meantime. Thanks for your patience&mdash;and your interest in Transitland!
+
 ## Installation
 
 Installation using pip:
